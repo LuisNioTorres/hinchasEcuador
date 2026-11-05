@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Montserrat, Tiro_Bangla } from "next/font/google";
 import "./globals.css";
 
@@ -22,6 +22,11 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "Censo Único del Ecuador",
   description: "Ayúdanos a descubrir cuál es el equipo más popular del país.",
+};
+
+// Permite usar env(safe-area-inset-*) en teléfonos con notch.
+export const viewport: Viewport = {
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

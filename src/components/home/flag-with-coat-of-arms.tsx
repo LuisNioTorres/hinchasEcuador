@@ -27,7 +27,7 @@ export function FlagWithCoatOfArms({
     <div className={`relative ${className}`}>
       <OwnerImage
         asset={ownerAssets.ecuadorFlag}
-        sizes="(min-width: 64rem) 38vw, (min-width: 40rem) 75vw, 92vw"
+        sizes="(min-width: 64rem) 38vw, (min-width: 48rem) 58vw, 64vw"
         preload
         className="aspect-[716/709] object-cover object-left"
       />
@@ -35,7 +35,7 @@ export function FlagWithCoatOfArms({
         <div className="animate-coat-slide-in [--coat-start-x:-51%] motion-reduce:animate-none">
           <OwnerImage
             asset={ownerAssets.ecuadorCoatOfArms}
-            sizes="(min-width: 64rem) 20vw, (min-width: 40rem) 39vw, 48vw"
+            sizes="(min-width: 64rem) 20vw, (min-width: 48rem) 30vw, 33vw"
             preload
           />
         </div>

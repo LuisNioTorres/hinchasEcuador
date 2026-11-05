@@ -1,6 +1,17 @@
 @import "tailwindcss";
 
 /*
+ * Variantes de layout por debajo de 1024px. Son mutuamente excluyentes y ninguna
+ * aplica desde 64rem: lo que se escriba con ellas no puede alterar desktop.
+ * - phone:  teléfono en vertical.
+ * - tablet: tableta en vertical.
+ * - wide:   horizontal por debajo de desktop (teléfono girado y tableta horizontal).
+ */
+@custom-variant phone (@media (width < 48rem) and (orientation: portrait));
+@custom-variant tablet (@media (48rem <= width < 64rem) and (orientation: portrait));
+@custom-variant wide (@media (width < 64rem) and (orientation: landscape));
+
+/*
  * Tokens de la Página Principal.
  * Los valores de color fueron muestreados de la referencia
  * design/references/pagina-principal/PAG PRINCIPAL1.jpg (1920x1080).
@@ -11,12 +22,41 @@
   --foreground: #000000;
 
   /* Alto del header fijo por breakpoint (usado para que la Sección 1 ocupe una pantalla). */
-  --header-h: 7.5rem;
+  --header-h: calc(3.75rem + env(safe-area-inset-top, 0px));
+
+  /* Margen lateral de página por debajo de desktop; respeta el notch en horizontal. */
+  --page-x: max(
+    1rem,
+    env(safe-area-inset-left, 0px),
+    env(safe-area-inset-right, 0px)
+  );
 }
 
 @media (min-width: 40rem) {
   :root {
-    --header-h: 5rem;
+    --header-h: calc(4.5rem + env(safe-area-inset-top, 0px));
+    --page-x: max(
+      2rem,
+      env(safe-area-inset-left, 0px),
+      env(safe-area-inset-right, 0px)
+    );
+  }
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --page-x: max(
+      2.5rem,
+      env(safe-area-inset-left, 0px),
+      env(safe-area-inset-right, 0px)
+    );
+  }
+}
+
+/* Teléfono en horizontal: el header cede alto al contenido. */
+@media (width < 64rem) and (max-height: 31.25rem) {
+  :root {
+    --header-h: calc(3.25rem + env(safe-area-inset-top, 0px));
   }
 }
 
