@@ -16,7 +16,7 @@ export function BouncingBall({ className = "" }: BouncingBallProps) {
       <div className="animate-ball-bounce motion-reduce:animate-none">
         <OwnerImage
           asset={ownerAssets.footballBall}
-          sizes="(min-width: 64rem) 6vw, 96px"
+          sizes="(min-width: 64rem) 6vw, 120px"
         />
       </div>
     </div>

@@ -5,7 +5,7 @@
  */
 export function SiteFooter() {
   return (
-    <footer className="flex h-24 items-center justify-center bg-bone font-tiro text-black lg:h-[7.76vw]">
+    <footer className="flex h-[calc(5rem+env(safe-area-inset-bottom))] items-center justify-center bg-bone pb-[env(safe-area-inset-bottom)] font-tiro text-black lg:h-[7.76vw] lg:pb-0">
       <p className="text-lg leading-none italic lg:text-[1.35vw]">footer</p>
     </footer>
   );
