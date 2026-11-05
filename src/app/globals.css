@@ -3,13 +3,16 @@
 /*
  * Variantes de layout por debajo de 1024px. Son mutuamente excluyentes y ninguna
  * aplica desde 64rem: lo que se escriba con ellas no puede alterar desktop.
- * - phone:  teléfono en vertical.
- * - tablet: tableta en vertical.
- * - wide:   horizontal por debajo de desktop (teléfono girado y tableta horizontal).
+ * - phone:  teléfono en vertical, hasta 725px de ancho.
+ * - phone-lg: tramo ancho de phone, desde 475px (afina phone, no lo sustituye).
+ * - tablet: 726-1023px en cualquier orientación, y cualquier pantalla más ancha que
+ *   alta con más de 500px de alto. Incluye ventanas más anchas que altas.
+ * - wide:   teléfono girado: horizontal con 500px de alto o menos.
  */
-@custom-variant phone (@media (width < 48rem) and (orientation: portrait));
-@custom-variant tablet (@media (48rem <= width < 64rem) and (orientation: portrait));
-@custom-variant wide (@media (width < 64rem) and (orientation: landscape));
+@custom-variant phone (@media (width < 45.375rem) and (orientation: portrait));
+@custom-variant phone-lg (@media (29.6875rem <= width < 45.375rem) and (orientation: portrait));
+@custom-variant tablet (@media (width < 64rem) and (height > 31.25rem) and ((width >= 45.375rem) or (orientation: landscape)));
+@custom-variant wide (@media (width < 64rem) and (orientation: landscape) and (height <= 31.25rem));
 
 /*
  * Tokens de la Página Principal.
@@ -58,10 +61,10 @@
  * abajo (¿Deseas votar? y VOTAR), al alcance del pulgar. `--action-h` es la franja
  * inferior que la cápsula ocupa: el contenido debe respetarla.
  */
-@media (width < 48rem) and (orientation: portrait) {
+@media (width < 45.375rem) and (orientation: portrait) {
   :root {
     --header-h: calc(3.5rem + env(safe-area-inset-top, 0px));
-    --action-h: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    --action-h: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 
     /* Alto de la Sección 1 (título 4,44 veces --hero-big); la Sección 3 lo iguala. */
     --section-h: calc(
@@ -71,6 +74,27 @@
     --top-row: clamp(2rem, 4.8svh, 2.5rem);
     --page-x: max(
       1.25rem,
+      env(safe-area-inset-left, 0px),
+      env(safe-area-inset-right, 0px)
+    );
+  }
+}
+
+/* Desde 475px el título es algo menor para que el balón quepa a su derecha. */
+@media (29.6875rem <= width < 45.375rem) and (orientation: portrait) {
+  :root {
+    --section-h: calc(
+      1.25rem + min(13vw, 8svh) * 4.44 + 4.5rem + clamp(8.5rem, 24svh, 14rem)
+    );
+  }
+}
+
+/* Tablet: mismo header y margen lateral en todo su rango. */
+@media (width < 64rem) and (height > 31.25rem) and ((width >= 45.375rem) or (orientation: landscape)) {
+  :root {
+    --header-h: calc(4.5rem + env(safe-area-inset-top, 0px));
+    --page-x: max(
+      2.5rem,
       env(safe-area-inset-left, 0px),
       env(safe-area-inset-right, 0px)
     );
