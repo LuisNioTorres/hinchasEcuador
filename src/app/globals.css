@@ -24,8 +24,8 @@
   --background: #ffffff;
   --foreground: #000000;
 
-  /* Alto del header fijo por breakpoint (usado para que la Sección 1 ocupe una pantalla). */
-  --header-h: calc(3.75rem + env(safe-area-inset-top, 0px));
+  /* Alto del header fijo: 45px en todas las pantallas. */
+  --header-h: calc(2.8125rem + env(safe-area-inset-top, 0px));
 
   /* Margen lateral de página por debajo de desktop; respeta el notch en horizontal. */
   --page-x: max(
@@ -37,7 +37,6 @@
 
 @media (min-width: 40rem) {
   :root {
-    --header-h: calc(4.5rem + env(safe-area-inset-top, 0px));
     --page-x: max(
       2rem,
       env(safe-area-inset-left, 0px),
@@ -63,7 +62,6 @@
  */
 @media (width < 45.375rem) and (orientation: portrait) {
   :root {
-    --header-h: calc(3.5rem + env(safe-area-inset-top, 0px));
     --action-h: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 
     /* Alto de la Sección 1 (título 4,44 veces --hero-big); la Sección 3 lo iguala. */
@@ -89,10 +87,9 @@
   }
 }
 
-/* Tablet: mismo header y margen lateral en todo su rango. */
+/* Tablet: mismo margen lateral en todo su rango. */
 @media (width < 64rem) and (height > 31.25rem) and ((width >= 45.375rem) or (orientation: landscape)) {
   :root {
-    --header-h: calc(4.5rem + env(safe-area-inset-top, 0px));
     --page-x: max(
       2.5rem,
       env(safe-area-inset-left, 0px),
@@ -101,17 +98,9 @@
   }
 }
 
-/* Teléfono en horizontal: el header cede alto al contenido. */
-@media (width < 64rem) and (max-height: 31.25rem) {
-  :root {
-    --header-h: calc(3.25rem + env(safe-area-inset-top, 0px));
-  }
-}
-
 @media (min-width: 64rem) {
   :root {
-    /* 120px sobre un lienzo de 1920px */
-    --header-h: 6.25vw;
+    --header-h: 2.8125rem;
   }
 }
 
