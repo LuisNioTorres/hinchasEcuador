@@ -53,6 +53,17 @@
   }
 }
 
+/*
+ * Teléfono en vertical: header compacto arriba (logo y eslogan) y barra de acción
+ * fija abajo (¿Deseas votar? y VOTAR), al alcance del pulgar.
+ */
+@media (width < 48rem) and (orientation: portrait) {
+  :root {
+    --header-h: calc(3.5rem + env(safe-area-inset-top, 0px));
+    --action-h: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* Teléfono en horizontal: el header cede alto al contenido. */
 @media (width < 64rem) and (max-height: 31.25rem) {
   :root {

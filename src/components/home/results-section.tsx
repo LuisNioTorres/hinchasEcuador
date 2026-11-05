@@ -36,7 +36,7 @@ export function ResultsSection({ results }: ResultsSectionProps) {
     >
       <h2
         id="resultados-title"
-        className="mx-auto flex w-fit items-center justify-center rounded-xl border-2 border-black bg-results-blue px-6 py-3 text-center text-2xl leading-[1.4] font-semibold text-white tablet:px-10 tablet:text-[1.75rem] wide:px-8 wide:py-2 wide:text-[clamp(1.25rem,2.6vw,1.75rem)] lg:h-[6.56vw] lg:w-[22.92vw] lg:rounded-[0.63vw] lg:border-[length:max(2px,0.1vw)] lg:p-0 lg:text-[1.93vw]"
+        className="mx-auto flex w-fit items-center justify-center rounded-xl border-2 border-black bg-results-blue px-6 py-3 text-center text-2xl leading-[1.4] font-semibold text-white phone:w-full phone:rounded-2xl phone:py-4 phone:text-[clamp(1.5rem,7vw,1.875rem)] phone:shadow-[3px_3px_0_0_#000] tablet:px-10 tablet:text-[1.75rem] wide:px-8 wide:py-2 wide:text-[clamp(1.25rem,2.6vw,1.75rem)] lg:h-[6.56vw] lg:w-[22.92vw] lg:rounded-[0.63vw] lg:border-[length:max(2px,0.1vw)] lg:p-0 lg:text-[1.93vw]"
       >
         RESULTADOS
         <br />
