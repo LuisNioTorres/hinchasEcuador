@@ -22,7 +22,10 @@ export function ResultsState({ status }: ResultsStateProps) {
     return (
       <div role="status" aria-live="polite" aria-busy="true">
         <span className="sr-only">Cargando resultados…</span>
-        <ul className="flex flex-col gap-3 lg:gap-[1.67vw]" aria-hidden="true">
+        <ul
+          className="flex flex-col gap-3 phone:gap-3.5 lg:gap-[1.67vw]"
+          aria-hidden="true"
+        >
           {ROWS.map((row) => (
             <li
               key={row}
