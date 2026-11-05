@@ -5,7 +5,7 @@
  */
 export function SiteFooter() {
   return (
-    <footer className="flex h-[calc(5rem+env(safe-area-inset-bottom))] items-center justify-center bg-bone pb-[env(safe-area-inset-bottom)] font-tiro text-black phone:h-[calc(5rem+var(--action-h))] phone:pb-(--action-h) lg:h-[7.76vw] lg:pb-0">
+    <footer className="flex h-[calc(5rem+env(safe-area-inset-bottom))] items-center justify-center bg-bone pb-[env(safe-area-inset-bottom)] font-tiro text-black phone:h-[calc(3.5rem+var(--action-h))] phone:pb-(--action-h) lg:h-[7.76vw] lg:pb-0">
       <p className="text-lg leading-none italic lg:text-[1.35vw]">footer</p>
     </footer>
   );

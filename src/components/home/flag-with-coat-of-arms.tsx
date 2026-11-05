@@ -20,8 +20,9 @@ interface FlagWithCoatOfArmsProps {
  * - ancho del escudo: 51,7% de la bandera (370 px en la referencia);
  * - centro final: centro de la bandera (50,3% compensa el margen transparente del PNG).
  *
- * En phone la bandera llena a todo el ancho el alto que le deje la Sección 1
- * (recorte centrado), así que el escudo se dimensiona por alto para caber siempre.
+ * En phone la bandera es una franja a todo el ancho. Se estira sin recortar
+ * (`object-fill`): son franjas lisas, así se conservan las tres y su proporción 2:1:1.
+ * El escudo se dimensiona por alto para caber siempre.
  */
 export function FlagWithCoatOfArms({
   className = "",
@@ -32,9 +33,9 @@ export function FlagWithCoatOfArms({
         asset={ownerAssets.ecuadorFlag}
         sizes="(min-width: 64rem) 38vw, (min-width: 48rem) 58vw, 100vw"
         preload
-        className="aspect-[716/709] object-cover object-left phone:absolute phone:inset-0 phone:aspect-auto phone:h-full phone:object-center"
+        className="aspect-[716/709] object-cover object-left phone:absolute phone:inset-0 phone:aspect-auto phone:h-full phone:object-fill"
       />
-      <div className="pointer-events-none absolute top-1/2 left-[50.3%] w-[51.7%] -translate-x-1/2 -translate-y-1/2 phone:aspect-[800/960] phone:h-[72%] phone:w-auto">
+      <div className="pointer-events-none absolute top-1/2 left-[50.3%] w-[51.7%] -translate-x-1/2 -translate-y-1/2 phone:aspect-[800/960] phone:h-[76%] phone:w-auto">
         <div className="animate-coat-slide-in [--coat-start-x:-51%] motion-reduce:animate-none">
           <OwnerImage
             asset={ownerAssets.ecuadorCoatOfArms}

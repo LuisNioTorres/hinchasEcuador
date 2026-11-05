@@ -5,6 +5,7 @@ import { OwnerImage } from "@/components/ui/owner-image";
 const MESSAGES = [
   {
     id: "organizacion",
+    phoneCard: "phone:bg-hero-censo-bg",
     lines: [
       "Somos el CENSO ÚNICO DEL ECUADOR,",
       "una organización sin fines de lucro.",
@@ -12,6 +13,7 @@ const MESSAGES = [
   },
   {
     id: "registro",
+    phoneCard: "phone:bg-hero-unico-bg",
     lines: [
       "Registrate en la plataforma, y vota por tu",
       "equipo favorito. Es totalmente gratuito.",
@@ -31,8 +33,9 @@ const MESSAGES = [
  * referencia.
  *
  * Por debajo de lg:
- * - phone: primero los mensajes, en tarjetas centradas con su logo, y al final
- *   los escudos a todo el ancho como cierre de la página.
+ * - phone: mide lo mismo que la Sección 1 (`--section-h`). Un solo bloque de tres
+ *   franjas seguidas, como la bandera: amarillo y azul con un mensaje y su logo al
+ *   lado, y rojo con los escudos. El alto sobrante se reparte entre las franjas.
  * - tablet: escudos centrados como protagonista y los dos mensajes lado a lado.
  * - wide: escudos a la izquierda y mensajes a la derecha, como en desktop.
  */
@@ -40,28 +43,28 @@ export function AboutSection() {
   return (
     <section
       id="sobre-el-censo"
-      className="bg-white py-10 font-tiro text-black max-lg:px-(--page-x) phone:flex phone:flex-col tablet:py-14 wide:flex wide:items-center wide:gap-[5vw] wide:py-8 lg:flex lg:min-h-[calc(100svh-var(--header-h)-7.76vw-2px)] lg:items-start lg:p-0"
+      className="bg-white py-10 font-tiro text-black max-lg:px-(--page-x) phone:flex phone:min-h-(--section-h) phone:flex-col phone:py-4 tablet:py-14 wide:flex wide:items-center wide:gap-[5vw] wide:py-8 lg:flex lg:min-h-[calc(100svh-var(--header-h)-7.76vw-2px)] lg:items-start lg:p-0"
     >
-      <div className="phone:order-last phone:mt-8 tablet:mx-auto tablet:w-[78%] tablet:max-w-[40rem] wide:w-[42%] wide:shrink-0 lg:mt-[7.4vw] lg:ml-[6.09vw] lg:w-[39.9vw] lg:shrink-0">
+      <div className="phone:order-last phone:flex phone:flex-[1_1_auto] phone:items-center phone:rounded-b-3xl phone:bg-hero-ecuador-bg phone:p-3 tablet:mx-auto tablet:w-[78%] tablet:max-w-[40rem] wide:w-[42%] wide:shrink-0 lg:mt-[7.4vw] lg:ml-[6.09vw] lg:w-[39.9vw] lg:shrink-0">
         <OwnerImage
           asset={ownerAssets.participatingClubsCrests}
           showPlaceholderLabel
         />
       </div>
 
-      <ul className="mt-10 flex flex-col gap-10 phone:mt-0 phone:gap-4 tablet:mt-12 tablet:grid tablet:grid-cols-2 tablet:gap-8 wide:mt-0 wide:min-w-0 wide:flex-1 wide:gap-[clamp(1rem,4vw,2.5rem)] lg:mt-[12.17vw] lg:ml-[14.53vw] lg:gap-[10.2vw]">
+      <ul className="mt-10 flex flex-col gap-10 phone:mt-0 phone:flex-[1_1_auto] phone:gap-0 tablet:mt-12 tablet:grid tablet:grid-cols-2 tablet:gap-8 wide:mt-0 wide:min-w-0 wide:flex-1 wide:gap-[clamp(1rem,4vw,2.5rem)] lg:mt-[12.17vw] lg:ml-[14.53vw] lg:gap-[10.2vw]">
         {MESSAGES.map((message) => (
           <li
             key={message.id}
-            className="flex items-center gap-3 phone:flex-col phone:rounded-2xl phone:border phone:border-divider phone:bg-bone phone:px-5 phone:py-6 phone:text-center lg:gap-[0.05vw]"
+            className={`flex items-center gap-3 phone:flex-1 phone:px-4 phone:py-3 phone:first:rounded-t-3xl lg:gap-[0.05vw] ${message.phoneCard}`}
           >
-            <div className="w-24 shrink-0 phone:w-20 wide:w-[clamp(4.5rem,9vw,6rem)] lg:w-[9.27vw]">
+            <div className="w-24 shrink-0 phone:w-14 wide:w-[clamp(4.5rem,9vw,6rem)] lg:w-[9.27vw]">
               <OwnerImage
                 asset={ownerAssets.companyIcon}
                 sizes="(min-width: 64rem) 10vw, 96px"
               />
             </div>
-            <p className="text-lg leading-[1.46] italic max-lg:min-w-0 max-lg:text-pretty phone:text-[1.125rem] phone:text-balance tablet:text-[1.1875rem] wide:text-[clamp(0.9375rem,2vw,1.25rem)] lg:-translate-y-[0.26vw] lg:text-[1.32vw]">
+            <p className="text-lg leading-[1.46] italic max-lg:min-w-0 max-lg:text-pretty phone:text-[clamp(0.9375rem,4vw,1.125rem)] phone:leading-[1.35] tablet:text-[1.1875rem] wide:text-[clamp(0.9375rem,2vw,1.25rem)] lg:-translate-y-[0.26vw] lg:text-[1.32vw]">
               {message.lines[0]}
               <br className="hidden lg:inline" /> {message.lines[1]}
             </p>
