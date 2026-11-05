@@ -1,26 +1,92 @@
 @import "tailwindcss";
 
+/*
+ * Tokens de la Página Principal.
+ * Los valores de color fueron muestreados de la referencia
+ * design/references/pagina-principal/PAG PRINCIPAL1.jpg (1920x1080).
+ * Son aproximaciones de una imagen JPG: confirmar HEX exactos con el dueño.
+ */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
+
+  /* Alto del header fijo por breakpoint (usado para que la Sección 1 ocupe una pantalla). */
+  --header-h: 7.5rem;
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --header-h: 5rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  :root {
+    /* 120px sobre un lienzo de 1920px */
+    --header-h: 6.25vw;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --font-tiro: var(--font-tiro-bangla);
+  --font-montserrat: var(--font-montserrat-family);
+
+  /* Azul del texto "¿Deseas votar?" y del botón VOTAR (muestreado, pendiente de confirmación). */
+  --color-brand-blue: #154e8e;
+
+  /* Fondo "amarillo hueso muy claro, casi blanco" (muestreado de las referencias 2 y 3). */
+  --color-bone: #fffffb;
+
+  /* Recuadro "RESULTADOS NACIONALES" (muestreado de la referencia 2). */
+  --color-results-blue: #376cd3;
+
+  /* Separador sutil entre secciones (gris claro de las referencias 2 y 3). */
+  --color-divider: #d0d0ce;
+
+  /*
+   * Bloques resaltados del título de la Sección 1. Según el dueño son amarillo,
+   * azul y rojo al 15% de opacidad sobre blanco; estos HEX opacos equivalen a
+   * ~#FFD016, ~#085FC3 y ~#EB2323 al 15% y el dueño los aprobó tal cual.
+   */
+  --color-hero-censo-bg: #fff8dc;
+  --color-hero-censo-ink: #261f03;
+  --color-hero-unico-bg: #dae7f6;
+  --color-hero-unico-ink: #010e1d;
+  --color-hero-ecuador-bg: #fcdede;
+  --color-hero-ecuador-ink: #230505;
+
+  /* Animación A: balón — rebote lento, suave y continuo. */
+  --animate-ball-bounce: ball-bounce 3.2s infinite;
+  /* Animación B: escudo — se desplaza una sola vez de izquierda a derecha y se detiene. */
+  --animate-coat-slide-in: coat-slide-in 1.6s cubic-bezier(0.33, 1, 0.68, 1)
+    0.2s both;
+
+  @keyframes ball-bounce {
+    0%,
+    100% {
+      transform: translateY(var(--ball-rise, -16%));
+      animation-timing-function: cubic-bezier(0.45, 0, 0.75, 0.6);
+    }
+    50% {
+      transform: translateY(0);
+      animation-timing-function: cubic-bezier(0.25, 0.4, 0.55, 1);
+    }
+  }
+
+  @keyframes coat-slide-in {
+    from {
+      transform: translateX(var(--coat-start-x, -51%));
+    }
+    to {
+      transform: translateX(0);
+    }
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
