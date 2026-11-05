@@ -23,13 +23,13 @@ export function ResultsState({ status }: ResultsStateProps) {
       <div role="status" aria-live="polite" aria-busy="true">
         <span className="sr-only">Cargando resultados…</span>
         <ul
-          className="flex flex-col gap-3 phone:gap-3.5 lg:gap-[1.67vw]"
+          className="flex flex-col gap-3 phone:gap-1.5 lg:gap-[1.67vw]"
           aria-hidden="true"
         >
           {ROWS.map((row) => (
             <li
               key={row}
-              className={`animate-pulse border-4 border-black/15 bg-black/5 motion-reduce:animate-none phone:border-[3px] lg:border-[length:max(3px,0.21vw)] ${TOP_FIVE_ROW_HEIGHT}`}
+              className={`animate-pulse border-4 border-black/15 bg-black/5 motion-reduce:animate-none phone:rounded-lg phone:border phone:border-black/10 lg:border-[length:max(3px,0.21vw)] ${TOP_FIVE_ROW_HEIGHT}`}
             />
           ))}
         </ul>
@@ -40,7 +40,7 @@ export function ResultsState({ status }: ResultsStateProps) {
   return (
     <div
       role="alert"
-      className="flex h-72 items-center justify-center border-4 border-black bg-white px-6 text-center text-lg font-semibold phone:border-[3px] tablet:h-[22rem] wide:h-64 lg:h-[29.06vw] lg:border-[length:max(3px,0.21vw)] lg:text-[1.46vw]"
+      className="flex h-72 items-center justify-center border-4 border-black bg-white px-6 text-center text-lg font-semibold phone:h-[calc(5*var(--top-row)+1.5rem)] phone:rounded-lg phone:border phone:border-black/40 phone:text-base tablet:h-[22rem] wide:h-64 lg:h-[29.06vw] lg:border-[length:max(3px,0.21vw)] lg:text-[1.46vw]"
     >
       {MESSAGES[status]}
     </div>

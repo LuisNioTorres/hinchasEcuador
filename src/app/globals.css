@@ -54,13 +54,26 @@
 }
 
 /*
- * Teléfono en vertical: header compacto arriba (logo y eslogan) y barra de acción
- * fija abajo (¿Deseas votar? y VOTAR), al alcance del pulgar.
+ * Teléfono en vertical: header compacto arriba (logo y eslogan) y cápsula flotante
+ * abajo (¿Deseas votar? y VOTAR), al alcance del pulgar. `--action-h` es la franja
+ * inferior que la cápsula ocupa: el contenido debe respetarla.
  */
 @media (width < 48rem) and (orientation: portrait) {
   :root {
     --header-h: calc(3.5rem + env(safe-area-inset-top, 0px));
-    --action-h: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    --action-h: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+
+    /* Alto de la Sección 1 (título 4,44 veces --hero-big); la Sección 3 lo iguala. */
+    --section-h: calc(
+      1.25rem + min(14.5vw, 8svh) * 4.44 + 6rem + clamp(8.5rem, 24svh, 14rem)
+    );
+    /* Alto de fila del TOP 5. */
+    --top-row: clamp(2rem, 4.8svh, 2.5rem);
+    --page-x: max(
+      1.25rem,
+      env(safe-area-inset-left, 0px),
+      env(safe-area-inset-right, 0px)
+    );
   }
 }
 
@@ -114,6 +127,22 @@
   /* Animación B: escudo — se desplaza una sola vez de izquierda a derecha y se detiene. */
   --animate-coat-slide-in: coat-slide-in 1.6s cubic-bezier(0.33, 1, 0.68, 1)
     0.2s both;
+  /* Sombra del balón en phone: mismo ritmo que el rebote. */
+  --animate-ball-shadow: ball-shadow 3.2s infinite;
+
+  @keyframes ball-shadow {
+    0%,
+    100% {
+      transform: scale(0.55);
+      opacity: 0.35;
+      animation-timing-function: cubic-bezier(0.45, 0, 0.75, 0.6);
+    }
+    50% {
+      transform: scale(1);
+      opacity: 1;
+      animation-timing-function: cubic-bezier(0.25, 0.4, 0.55, 1);
+    }
+  }
 
   @keyframes ball-bounce {
     0%,

@@ -15,7 +15,7 @@ export const VOTE_ROUTE = "/votar";
  * píxeles en capturas).
  *
  * Teléfono en vertical (phone): el header queda solo con logo y eslogan, y
- * "¿Deseas votar?" + VOTAR pasan a una barra fija inferior, al alcance del pulgar
+ * "¿Deseas votar?" + VOTAR pasan a una cápsula flotante, al alcance del pulgar
  * y con el botón relleno para que sea la acción dominante. Es `fixed` dentro del
  * header sticky: el header no debe tener transform ni filter, o dejaría de
  * anclarse al viewport.
@@ -39,13 +39,13 @@ export function SiteHeader() {
           </p>
         </div>
 
-        <div className="flex items-center justify-end gap-3 max-lg:shrink-0 phone:fixed phone:inset-x-0 phone:bottom-0 phone:h-(--action-h) phone:justify-between phone:border-t phone:border-divider phone:bg-white phone:px-(--page-x) phone:pb-[env(safe-area-inset-bottom)] lg:gap-[1.07vw]">
-          <p className="text-lg leading-none text-brand-blue wide:max-sm:hidden max-lg:whitespace-nowrap phone:text-[clamp(1.125rem,5.4vw,1.375rem)] lg:translate-y-[0.36vw] sm:text-xl lg:text-[1.71vw]">
+        <div className="flex items-center justify-end gap-3 max-lg:shrink-0 phone:fixed phone:inset-x-3 phone:bottom-[max(0.75rem,env(safe-area-inset-bottom))] phone:h-16 phone:justify-between phone:rounded-full phone:bg-white phone:pr-2 phone:pl-6 phone:shadow-[0_10px_30px_rgba(0,0,0,0.22)] lg:gap-[1.07vw]">
+          <p className="text-lg leading-none text-brand-blue wide:max-sm:hidden max-lg:whitespace-nowrap phone:text-[clamp(1.0625rem,5vw,1.3125rem)] lg:translate-y-[0.36vw] sm:text-xl lg:text-[1.71vw]">
             ¿Deseas votar?
           </p>
           <Link
             href={VOTE_ROUTE}
-            className="inline-flex h-11 min-w-28 items-center max-sm:min-w-[5.5rem] max-sm:px-3 justify-center rounded-2xl border-[3px] border-brand-blue px-4 pt-[0.2em] text-lg leading-none text-brand-blue transition-colors hover:bg-brand-blue/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-blue sm:text-xl phone:h-12 phone:min-w-[9rem] phone:rounded-xl phone:bg-brand-blue phone:text-xl phone:text-white phone:hover:bg-brand-blue lg:h-[3.49vw] lg:w-[12.29vw] lg:rounded-[1.04vw] lg:border-[length:max(2px,0.156vw)] lg:text-[1.78vw]"
+            className="inline-flex h-11 min-w-28 items-center max-sm:min-w-[5.5rem] max-sm:px-3 justify-center rounded-2xl border-[3px] border-brand-blue px-4 pt-[0.2em] text-lg leading-none text-brand-blue transition-colors hover:bg-brand-blue/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-blue sm:text-xl phone:h-12 phone:min-w-[8.5rem] phone:rounded-full phone:bg-brand-blue phone:text-xl phone:tracking-wide phone:text-white phone:transition-transform phone:hover:bg-brand-blue phone:active:scale-95 lg:h-[3.49vw] lg:w-[12.29vw] lg:rounded-[1.04vw] lg:border-[length:max(2px,0.156vw)] lg:text-[1.78vw]"
           >
             VOTAR
           </Link>
