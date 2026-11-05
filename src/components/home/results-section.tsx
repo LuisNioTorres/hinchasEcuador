@@ -14,6 +14,7 @@ interface ResultsSectionProps {
  *
  * Medidas lg+ en vw sobre el lienzo de 1920px, tomando como origen vertical
  * la línea separadora de la referencia (y=110). Tipografía: Montserrat.
+ * En lg+ el contenido se centra en vertical dentro del alto de la sección.
  *
  * Por debajo de lg:
  * - phone: TOP 5 compacto (máximo 380px de ancho) y, debajo, el mapa centrado (máximo
@@ -36,7 +37,7 @@ export function ResultsSection({ results }: ResultsSectionProps) {
     <section
       id="resultados-nacionales"
       aria-labelledby="resultados-title"
-      className="bg-bone py-10 font-montserrat text-black max-lg:px-(--page-x) phone:py-4 tablet:grid tablet:grid-cols-[48%_minmax(0,1fr)] tablet:gap-x-[4vw] tablet:py-10 wide:py-8 lg:min-h-[calc(100svh-var(--header-h)-1px)] lg:p-0 lg:pt-[0.68vw]"
+      className="bg-bone py-10 font-montserrat text-black max-lg:px-(--page-x) phone:py-4 tablet:grid tablet:grid-cols-[48%_minmax(0,1fr)] tablet:gap-x-[4vw] tablet:py-10 wide:py-8 lg:flex lg:min-h-[calc(100svh-var(--header-h)-1px)] lg:flex-col lg:justify-center lg:px-0 lg:py-[0.68vw]"
     >
       <h2
         id="resultados-title"
