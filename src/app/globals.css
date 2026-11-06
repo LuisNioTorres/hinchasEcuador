@@ -87,6 +87,16 @@
   }
 }
 
+/*
+ * Pantallas de menos de 300px: el diseño se escala en proporción al ancho, porque
+ * sus medidas están en rem y vw. En 300px 1rem sigue valiendo 16px: no hay salto.
+ */
+@media (width < 18.75rem) {
+  html {
+    font-size: calc(100vw / 18.75);
+  }
+}
+
 /* Tablet: mismo margen lateral en todo su rango. */
 @media (width < 64rem) and (height > 31.25rem) and ((width >= 45.375rem) or (orientation: landscape)) {
   :root {
