@@ -97,7 +97,7 @@ Pospuesta por el dueño el 2026-11-06: las vistas se verán más adelante. Sigue
 ### Fase 4: Pruebas
 Ejecutadas en Docker local el 2026-11-07, sin tocar el proyecto real: 64 de 64 pruebas correctas. Se repiten con `supabase/tests/fase4.mjs`; las instrucciones están al inicio del archivo.
 
-Revisión de solo lectura del proyecto real (2026-11-07): las 4 migraciones coinciden. `profiles` y `votos` tienen los mismos permisos que en local, y sus políticas y triggers están activos. Quedan dos temas por decidir con el dueño:
+Revisión de solo lectura del proyecto real (2026-11-07): las 4 migraciones coinciden. `profiles` y `votos` tienen los mismos permisos que en local, y sus políticas y triggers están activos. Se encontraron dos temas, que corrige `20261107120000_corregir_permisos.sql` (probada en local; **aún sin aplicar en el proyecto real**):
 
 - El asesor advierte que `anon` y `authenticated` pueden ejecutar `public.rls_auto_enable()`, función de Automatic RLS que solo existe en el proyecto real. Una copia probada en local rechazó la llamada, por ser de tipo `event_trigger`.
 - En el proyecto real, `service_role` conserva `TRUNCATE`, `REFERENCES`, `TRIGGER` y `MAINTAIN` en los catálogos, y no puede leerlos. La migración de catálogos solo quitó permisos a `anon` y `authenticated`.

@@ -411,6 +411,13 @@ await t('Permisos de columna en profiles: solo nombre_completo', () => {
       and grantee in ('anon','authenticated','service_role','PUBLIC') order by 1`);
   must(rows === 'authenticated.nombre_completo.UPDATE', `encontrado:\n${rows}`);
 });
+await t('La clave secreta no tiene ningún permiso en los catálogos', () => {
+  const rows = sql(`
+    select grantee||'.'||table_name||'.'||privilege_type from information_schema.role_table_grants
+    where table_schema='public' and table_name in ('continentes','provincias','cantones','clubes')
+      and grantee='service_role' order by 1`);
+  must(rows === '', `encontrado:\n${rows}`);
+});
 await t('RLS activo en todas las tablas públicas', () => {
   const rows = sql(`select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace
     where n.nspname='public' and c.relkind='r' and not c.relrowsecurity`);
