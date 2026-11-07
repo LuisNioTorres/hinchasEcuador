@@ -50,17 +50,6 @@ export const ownerAssets = {
     height: 960,
   },
   /**
-   * PENDIENTE — Mapa del Ecuador por provincias (Sección 2).
-   * Marcador provisional: el mapa final debe ser interactivo (SVG por
-   * provincias), no una imagen estática. Medidas del bloque en la referencia.
-   */
-  ecuadorProvinceMap: {
-    src: null,
-    alt: "Mapa del Ecuador por provincias",
-    width: 565,
-    height: 643,
-  },
-  /**
    * PENDIENTE — Imagen con los escudos de los equipos participantes
    * (Sección 3). Medidas del bloque en la referencia.
    */
