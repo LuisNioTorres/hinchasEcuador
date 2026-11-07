@@ -35,10 +35,10 @@
 | `id` | `UUID` | `PRIMARY KEY`, `DEFAULT gen_random_uuid()` | Identificador único del club en base de datos. |
 | `slug` | `VARCHAR(50)` | `UNIQUE`, `NOT NULL` | Código/identificador único en texto para URLs y CSS (Ej: `emelec`, `barcelona`, `liga-quito`). |
 | `nombre_oficial` | `VARCHAR(150)` | `NOT NULL` | Nombre legal o de registro del club (Ej: `CLUB SPORT EMELEC`). |
-| `nombre_popular` | `VARCHAR(100)` | `NOT NULL` | Nombre corto con el que se mostrará en la web (Ej: `EMELEC`). |
-| `color_hex` | `VARCHAR(7)` | `NOT NULL` | Código de color hexadecimal del club para mapas y gráficos (Ej: `#0055A5`). Dos clubes pueden compartir el mismo color. |
+| `nombre_popular` | `VARCHAR(100)` | `UNIQUE`, `NOT NULL` | Nombre corto con el que se mostrará en la web (Ej: `EMELEC`). |
+| `color_hex` | `VARCHAR(7)` | `NOT NULL`, formato `#RRGGBB` | Código de color hexadecimal del club para mapas y gráficos (Ej: `#0055A5`). Dos clubes pueden compartir el mismo color. |
 | `escudo_url` | `VARCHAR(255)` | `NOT NULL` | Ruta relativa del archivo del escudo almacenado en el proyecto (Ej: `/images/escudos/emelec.png`). |
-| `provincia_id` | `UUID` | `FOREIGN KEY` -> `provincias(id)` | Provincia de origen o sede histórica del club. |
+| `provincia_id` | `UUID` | `FOREIGN KEY` -> `provincias(id)` | Provincia de origen o sede histórica del club. Es solo un dato de orden y no tiene ningún efecto en el sistema. |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT now()` | Fecha y hora de registro del club en la plataforma. |
 
 ## Módulo 3: Usuarios, Autenticación y Registro Express
@@ -73,6 +73,7 @@
 ## Módulo 4: Votación e Integridad de Datos
 
 ### 1. Reglas de Negocio
+- **Voto Libre por Cualquier Club:** Cualquier persona, desde cualquier provincia, cantón o continente, puede votar por cualquier club. La provincia del club nunca limita ni condiciona el voto.
 - **Unicidad Absoluta (Un voto por persona):** Cada usuario registrado en `auth.users` puede registrar exactamente un (1) solo voto en todo el sistema. Esta restricción se aplica estrictamente a nivel de base de datos con un índice único `UNIQUE(usuario_id)`.
 - **Lógica de Ubicación Exclusiva (Mutuamente Excluyente):**
   - **Voto en Ecuador:** Almacena obligatoriamente `provincia_id` y `canton_id`. El campo `continente_id` se registra como `NULL`.
