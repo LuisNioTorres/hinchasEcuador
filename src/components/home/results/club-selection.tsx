@@ -68,8 +68,10 @@ export function SelectableClubRow({
 
   return (
     <li
-      className={`relative outline-offset-2 outline-black transition-opacity duration-150 has-[:focus-visible]:outline-2 motion-reduce:transition-none ${
-        isSelected ? "outline-2" : ""
+      className={`relative outline-offset-2 outline-black transition-[opacity,scale,box-shadow] duration-200 ease-out has-[:focus-visible]:outline-2 motion-reduce:transition-none ${
+        isSelected
+          ? "z-10 scale-[1.03] shadow-[0_0.5rem_1.25rem_rgba(15,30,60,0.22)] motion-reduce:scale-100"
+          : ""
       } ${isDimmed ? "opacity-45" : ""} ${className}`}
     >
       {children}

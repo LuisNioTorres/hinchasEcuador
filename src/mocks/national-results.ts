@@ -7,6 +7,9 @@
  *
  * Colores de los clubes: muestreados de la referencia (JPG). PENDIENTES de que
  * el dueño apruebe el HEX exacto de cada equipo.
+ *
+ * Escudos: copias de Wikimedia Commons (Emelec, Barcelona y Liga de Quito figuran como
+ * dominio público; El Nacional, como CC0). Falta el de Chacaritas: no hay fuente verificable.
  */
 
 export type ResultsStatus = "ok" | "error" | "offline" | "loading";
@@ -20,6 +23,8 @@ export interface ClubResult {
   readonly color: string;
   /** Color del texto sobre `color`, según la referencia. */
   readonly textColor: string;
+  /** Ruta del escudo, o `null` mientras no se tenga el archivo. */
+  readonly crest: string | null;
 }
 
 export interface NationalResults {
@@ -39,6 +44,7 @@ export const mockClubs: readonly ClubResult[] = [
     percentage: 30,
     color: "#376CD3",
     textColor: "#FFFFFF",
+    crest: "/images/escudos/emelec.webp",
   },
   {
     id: "barcelona",
@@ -46,6 +52,7 @@ export const mockClubs: readonly ClubResult[] = [
     percentage: 30,
     color: "#FBDB66",
     textColor: "#000000",
+    crest: "/images/escudos/barcelona.webp",
   },
   {
     id: "el-nacional",
@@ -53,6 +60,7 @@ export const mockClubs: readonly ClubResult[] = [
     percentage: 30,
     color: "#F13836",
     textColor: "#FFFFFF",
+    crest: "/images/escudos/el-nacional.webp",
   },
   {
     id: "liga-de-quito",
@@ -60,6 +68,7 @@ export const mockClubs: readonly ClubResult[] = [
     percentage: 30,
     color: "#FFFFFF",
     textColor: "#000000",
+    crest: "/images/escudos/liga-quito.webp",
   },
   {
     id: "chacarita",
@@ -67,6 +76,7 @@ export const mockClubs: readonly ClubResult[] = [
     percentage: 30,
     color: "#00BF62",
     textColor: "#FFFFFF",
+    crest: null,
   },
 ];
 

@@ -122,7 +122,7 @@ Revisión del proyecto real (2026-11-07): las migraciones coinciden. `profiles` 
 - [x] Revisión de la lista por el dueño (aprobada el 2026-11-06)
 - [ ] Color de Tungurahua SC (gris provisional `#9CA3AF`)
 - [ ] Decidir si el blanco de Liga de Quito y Norte América es un problema en el mapa (el dueño lo verá más adelante)
-- [ ] Archivos de escudo en `public/images/escudos/` (aún no existen)
+- [ ] Archivos de escudo en `public/images/escudos/` (4 de los 95: Emelec, Barcelona, El Nacional y Liga de Quito; falta Chacaritas para el Top 5)
 
 Decisiones de carga, tomadas por Claude según `docs/DATOS_INFORMATION.md`:
 - **Alcance:** clubes del campeonato nacional, sin los que solo jugaron torneos provinciales.
