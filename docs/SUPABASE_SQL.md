@@ -29,7 +29,7 @@ Registro de la etapa de base de datos: qué está hecho, cómo está configurado
 | Supabase CLI | Dependencia de desarrollo del proyecto (3.0.0), para aplicar las migraciones. `db push` actúa en local por defecto; el proyecto real requiere `--remote` |
 | Entorno de pruebas | Docker Desktop local, aún sin instalar |
 
-Los ajustes de Data API y Automatic RLS constan por lo que informó el dueño desde el panel. Faltan confirmarlos en el proyecto real.
+Confirmado en el proyecto real el 2026-11-06: PostgreSQL 17.11, Data API respondiendo, Automatic RLS activo y tablas nuevas sin permisos de lectura ni escritura para `anon` y `authenticated`. Esas tablas sí reciben por defecto `TRUNCATE`, `REFERENCES`, `TRIGGER` y `MAINTAIN`, por lo que cada migración debe quitarlos con `REVOKE ALL`.
 
 ## Decisiones del dueño (2026-11-06)
 
@@ -68,17 +68,19 @@ Se resuelven en la fase indicada, cuyo diseño debe aprobar el dueño.
 - [x] Proyecto creado en Supabase y conectado con Next.js
 - [x] Decisiones 1 a 11 tomadas
 - [x] Documentos corregidos (auditoría del 2026-11-06)
-- [ ] Cambios guardados en GitHub (commit del dueño)
-- [ ] Forma de aplicar las migraciones configurada (el dueño inicia sesión y enlaza el proyecto)
-- [ ] Ajustes de seguridad confirmados en el proyecto real
-- [ ] Diseño de las tablas de catálogos aprobado por el dueño
+- [x] Cambios guardados en GitHub (commit del dueño)
+- [x] CLI enlazada al proyecto real y simulación de migraciones correcta (`db push --remote --dry-run`)
+- [x] Ajustes de seguridad confirmados en el proyecto real
+- [x] Diseño de las tablas de catálogos aprobado por el dueño (2026-11-06)
 - [ ] Docker Desktop instalado (antes de la Fase 2)
 
 ### Fase 1: Catálogos
-- [ ] Tablas de continentes, provincias, cantones y clubes
-- [ ] Reglas de lectura pública
-- [ ] Carga de continentes, provincias y cantones, con sus fuentes
-- [ ] Revisión de los datos cargados por el dueño
+- [x] Tablas de continentes, provincias, cantones y clubes (`20261106120000_crear_catalogos.sql`)
+- [x] Reglas de lectura pública, verificadas: el público lee, pero no puede crear, cambiar ni borrar
+- [x] Carga de 7 continentes, 24 provincias y 222 cantones (`20261106120100_cargar_geografia.sql`)
+- [x] Revisión de los datos cargados por el dueño (aprobada el 2026-11-06)
+
+Fuentes de la carga: lista de INEC de 2012 publicada en una capa cartográfica que cita a INEC, más La Concordia (Asamblea Nacional, 2013) y Sevilla Don Bosco (Asamblea Nacional, 2024). Falta contrastar la lista con un archivo publicado por INEC y con el Registro Oficial. "El Empalme" se escribe con artículo, aunque INEC lo lista como "Empalme".
 
 ### Fase 2: Usuarios y votos
 - [ ] Tabla `profiles`, creada automáticamente con cada cuenta
@@ -101,9 +103,23 @@ Se resuelven en la fase indicada, cuyo diseño debe aprobar el dueño.
 - [ ] Revisión con el asesor de seguridad de Supabase
 - [ ] Lint y build correctos
 
+## Catálogo de clubes
+
+- [x] Carga de 95 clubes de Serie A y Serie B hasta 2026 (`20261106130000_cargar_clubes.sql`)
+- [x] Revisión de la lista por el dueño (aprobada el 2026-11-06)
+- [ ] Color de Tungurahua SC (gris provisional `#9CA3AF`)
+- [ ] Decidir si el blanco de Liga de Quito y Norte América es un problema en el mapa (el dueño lo verá más adelante)
+- [ ] Archivos de escudo en `public/images/escudos/` (aún no existen)
+
+Decisiones de carga, tomadas por Claude según `docs/DATOS_INFORMATION.md`:
+- **Alcance:** clubes del campeonato nacional, sin los que solo jugaron torneos provinciales.
+- **Fuentes:** anexos de participantes de Wikipedia en español, `ligapro.ec` para Serie A y B 2026, y fichas de cada club y RSSSF para los colores. Son fuentes de referencia, no registros de la FEF.
+- **Provincia:** es solo un dato de orden, sin ningún efecto en el sistema; cualquier persona puede votar por cualquier club. Se usa la de origen o sede histórica, y Luq-San queda sin provincia.
+- **Color:** Emelec, Barcelona, El Nacional y Liga de Quito usan el de la referencia de diseño. Si el club usa camiseta blanca, se toma su color distintivo, salvo Liga de Quito y Norte América.
+- **Nombre oficial:** el nombre habitual de la institución, sin el prefijo legal largo.
+
 ## Fuera de esta etapa
 
-- Carga de clubes
 - Pantallas de login y de votación
 - Protección contra bots y correo propio
 - Conectar la Página Principal a los datos reales
