@@ -4,7 +4,7 @@
 
 Build a public web platform for people to indicate which EXcuadorian football club they support and consult voting results and rankings.
 
-The initial development milestone is the **public homepage**, before implementing real registration, authentication, voting, or database integration.
+The first milestone, the **public homepage**, is complete. The current stage is **SUPABASE-SQL**, which builds the database. Its status, decisions, and checklist are in `docs/SUPABASE_SQL.md`.
 
 ## 2. Product principles
 
@@ -22,7 +22,7 @@ The initial development milestone is the **public homepage**, before implementin
 
 - Do not invent copy, imagery, logos, badges, or product functionality.
 
-## 3. Homepage scope — current milestone
+## 3. Homepage scope — completed milestone
 
 Implement one vertically scrolling page containing three consecutive sections corresponding to the three supplied Canva reference images.
 
@@ -47,23 +47,23 @@ Temporary behavior:
 - Email verification is required before voting.
 - One definitive vote per account; users cannot change or delete it.
 - Location is declared by the user, not verified.
-- Ecuador results can be consulted nationally, by province, and by city; international results by continent.
+- Ecuador results can be consulted nationally, by province, and by canton (never by city or parish); international results by continent.
 - Club catalogue includes Ecuadorian clubs that have been professional at least once, including inactive or disappeared clubs. Exclude clubs that have never been professional and national teams.
 - Rankings sort by valid votes descending; ties are alphabetical by club name.
 - Percentages use valid votes in the selected scope as denominator.
-- CAPTCHA is required at voting time.
+- Bot protection is invisible at voting time; a normal user just votes, and an extra verification appears only when the system detects bot activity.
 - Do not use IP address as an identity or restriction mechanism.
 
 These rules describe the wider product and must not be implemented as part of the homepage-only milestone unless explicitly authorized.
 
-## 5. Out of scope for the current milestone
+## 5. Out of scope for the current SUPABASE-SQL stage
 
 - Registration and account creation.
 - Sign-in and session management.
 - Email verification.
 - Vote submission or vote modification.
-- Real database and backend integration.
-- Real national/provincial/city rankings.
+- Connecting the website to real data.
+- Showing real national/provincial/canton rankings on the website.
 - Final club catalogue administration.
 
 ## 6. Source of truth and change control
