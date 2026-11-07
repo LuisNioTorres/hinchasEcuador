@@ -27,7 +27,7 @@ Registro de la etapa de base de datos: qué está hecho, cómo está configurado
 | Automatic RLS | Activada |
 | Conexión con Next.js | `src/lib/supabase/`, con los datos públicos en `.env.local` |
 | Supabase CLI | Dependencia de desarrollo del proyecto (3.0.0), para aplicar las migraciones. `db push` actúa en local por defecto; el proyecto real requiere `--remote` |
-| Entorno de pruebas | Docker Desktop local, aún sin instalar |
+| Entorno de pruebas | Docker Desktop local (instalado el 2026-11-07) |
 
 Confirmado en el proyecto real el 2026-11-06: PostgreSQL 17.11, Data API respondiendo, Automatic RLS activo y tablas nuevas sin permisos de lectura ni escritura para `anon` y `authenticated`. Esas tablas sí reciben por defecto `TRUNCATE`, `REFERENCES`, `TRIGGER` y `MAINTAIN`, por lo que cada migración debe quitarlos con `REVOKE ALL`.
 
@@ -71,7 +71,7 @@ Se resuelven en la fase indicada, cuyo diseño debe aprobar el dueño.
 - [x] CLI enlazada al proyecto real y simulación de migraciones correcta (`db push --remote --dry-run`)
 - [x] Ajustes de seguridad confirmados en el proyecto real
 - [x] Diseño de las tablas de catálogos aprobado por el dueño (2026-11-06)
-- [ ] Docker Desktop instalado (antes de las pruebas de la Fase 4)
+- [x] Docker Desktop instalado (antes de las pruebas de la Fase 4)
 
 ### Fase 1: Catálogos
 - [x] Tablas de continentes, provincias, cantones y clubes (`20261106120000_crear_catalogos.sql`)
@@ -84,7 +84,7 @@ Fuentes de la carga: lista de INEC de 2012 publicada en una capa cartográfica q
 ### Fase 2: Usuarios y votos
 - [x] Tablas `profiles` y `votos` creadas (`20261106140000_crear_profiles_votos.sql`)
 - [x] Permisos revisados: un visitante no puede leer ni escribir en ellas
-- [ ] Reglas probadas con usuarios y votos simulados (pendiente de Docker; ver Fase 4)
+- [x] Reglas probadas con usuarios y votos simulados en local (2026-11-07; ver Fase 4)
 
 ### Fase 3: Resultados
 
@@ -95,19 +95,26 @@ Pospuesta por el dueño el 2026-11-06: las vistas se verán más adelante. Sigue
 - [ ] Las vistas no revelan datos de los votantes
 
 ### Fase 4: Pruebas
-- [ ] Un visitante no puede votar ni leer votos individuales
-- [ ] Un usuario no puede votar dos veces, ni editar o borrar su voto
-- [ ] Dos votos simultáneos de la misma cuenta: solo entra uno
-- [ ] El perfil se crea automáticamente con la cuenta
-- [ ] `ha_votado` se activa con el voto, y una cuenta sin correo verificado no puede votar
-- [ ] Una cuenta sin voto se puede borrar y su perfil se borra con ella
-- [ ] Nadie puede cambiar un voto, ni siquiera con la clave secreta del servidor
-- [ ] Un usuario no puede escribir en los catálogos ni ver o editar perfiles ajenos
-- [ ] Un usuario no puede cambiar su `email` ni `ha_votado`, y su perfil queda bloqueado al votar
-- [ ] Un cantón de otra provincia es rechazado
-- [ ] Una cuenta que ya votó no se puede borrar
-- [ ] Revisión con el asesor de seguridad de Supabase
-- [ ] Lint y build correctos
+Ejecutadas en Docker local el 2026-11-07, sin tocar el proyecto real: 64 de 64 pruebas correctas. Se repiten con `supabase/tests/fase4.mjs`; las instrucciones están al inicio del archivo.
+
+Revisión de solo lectura del proyecto real (2026-11-07): las 4 migraciones coinciden. `profiles` y `votos` tienen los mismos permisos que en local, y sus políticas y triggers están activos. Quedan dos temas por decidir con el dueño:
+
+- El asesor advierte que `anon` y `authenticated` pueden ejecutar `public.rls_auto_enable()`, función de Automatic RLS que solo existe en el proyecto real. Una copia probada en local rechazó la llamada, por ser de tipo `event_trigger`.
+- En el proyecto real, `service_role` conserva `TRUNCATE`, `REFERENCES`, `TRIGGER` y `MAINTAIN` en los catálogos, y no puede leerlos. La migración de catálogos solo quitó permisos a `anon` y `authenticated`.
+
+- [x] Un visitante no puede votar ni leer votos individuales
+- [x] Un usuario no puede votar dos veces, ni editar o borrar su voto
+- [x] Dos votos simultáneos de la misma cuenta: solo entra uno
+- [x] El perfil se crea automáticamente con la cuenta
+- [x] `ha_votado` se activa con el voto, y una cuenta sin correo verificado no puede votar
+- [x] Una cuenta sin voto se puede borrar y su perfil se borra con ella
+- [x] Nadie puede cambiar un voto, ni siquiera con la clave secreta del servidor
+- [x] Un usuario no puede escribir en los catálogos ni ver o editar perfiles ajenos
+- [x] Un usuario no puede cambiar su `email` ni `ha_votado`, y su perfil queda bloqueado al votar
+- [x] Un cantón de otra provincia es rechazado
+- [x] Una cuenta que ya votó no se puede borrar
+- [ ] Revisión con el asesor de seguridad de Supabase (ejecutado en el proyecto real; falta resolver sus 2 advertencias)
+- [x] Lint y build correctos
 
 ## Catálogo de clubes
 
