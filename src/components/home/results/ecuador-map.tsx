@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type PointerEvent } from "react";
+import { useClubSelection } from "@/components/home/results/club-selection";
 import {
   ECUADOR_MAP_VIEWBOX,
   ECUADOR_PROVINCES,
@@ -60,16 +61,29 @@ function getLegend(leaders: ProvinceLeaders) {
  * adapta a todos los tamaños de pantalla sin librerías.
  *
  * Al pasar el cursor, tocar o enfocar con teclado una provincia, se resalta y la
- * tarjeta de la esquina muestra su líder. En reposo, la tarjeta es la leyenda de
- * colores. Ambas ocupan la zona sin tierra del mapa.
+ * tarjeta de la esquina muestra su líder. Al elegir un club en el TOP 5 se resaltan
+ * las provincias donde lidera, y la tarjeta muestra cuántas son. En reposo, la tarjeta
+ * es la leyenda de colores. Todas ocupan la zona sin tierra del mapa.
  */
 export function EcuadorMap({ leaders }: EcuadorMapProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const { selectedClub, clearClub } = useClubSelection();
   const active = ECUADOR_PROVINCES.find(({ id }) => id === activeId);
   const activeLeader = activeId ? leaders[activeId] : undefined;
   const legend = getLegend(leaders);
   const hasResults = legend.length > 0;
   const { width, height } = ECUADOR_MAP_VIEWBOX;
+
+  const isClubProvince = (id: string) =>
+    selectedClub !== null && leaders[id]?.clubId === selectedClub.id;
+  const isHighlighted = (id: string) => id === activeId || isClubProvince(id);
+  const hasHighlight = activeId !== null || selectedClub !== null;
+
+  const clubProvinces = ECUADOR_PROVINCES.filter(({ id }) =>
+    isClubProvince(id),
+  ).length;
+  const clubSummary = `${clubProvinces} ${clubProvinces === 1 ? "provincia" : "provincias"}`;
+  const swatchColor = active ? activeLeader?.color : selectedClub?.color;
 
   const provinceHandlers = (id: string) => ({
     onPointerEnter: (event: PointerEvent) => {
@@ -85,7 +99,7 @@ export function EcuadorMap({ leaders }: EcuadorMapProps) {
 
   const renderProvince = ({ id, name, d }: EcuadorProvince) => {
     const leader = leaders[id];
-    const isDimmed = hasResults && activeId !== null && id !== activeId;
+    const isDimmed = hasResults && hasHighlight && !isHighlighted(id);
 
     return (
       <path
@@ -153,7 +167,10 @@ export function EcuadorMap({ leaders }: EcuadorMapProps) {
           width={width}
           height={height}
           fill="url(#ecuador-map-dots)"
-          onClick={() => setActiveId(null)}
+          onClick={() => {
+            setActiveId(null);
+            clearClub();
+          }}
         />
 
         <text
@@ -205,20 +222,27 @@ export function EcuadorMap({ leaders }: EcuadorMapProps) {
           )}
         </g>
 
-        {/* Contorno de la provincia activa, por encima de sus vecinas. */}
-        {active && (
-          <path
-            d={active.d}
-            fill="none"
-            stroke={hasResults ? RESULTS_BORDER : "#ffffff"}
-            strokeWidth="2"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-            aria-hidden="true"
-            className="pointer-events-none"
-          />
+        {/* Contorno de las provincias resaltadas, por encima de sus vecinas. */}
+        {ECUADOR_PROVINCES.filter(({ id }) => isHighlighted(id)).map(
+          ({ id, d }) => (
+            <path
+              key={id}
+              d={d}
+              fill="none"
+              stroke={hasResults ? RESULTS_BORDER : "#ffffff"}
+              strokeWidth="2"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+              aria-hidden="true"
+              className="pointer-events-none"
+            />
+          ),
         )}
       </svg>
+
+      <p aria-live="polite" className="sr-only">
+        {selectedClub ? `${selectedClub.name}: ${clubSummary}` : ""}
+      </p>
 
       <span
         aria-hidden="true"
@@ -232,7 +256,7 @@ export function EcuadorMap({ leaders }: EcuadorMapProps) {
         Galápagos
       </span>
 
-      {hasResults && !active ? (
+      {hasResults && !active && !selectedClub ? (
         <div
           aria-hidden="true"
           className={`${CARD_CLASS} w-[37%] min-w-fit flex-col items-stretch gap-[0.3em] text-[clamp(0.5625rem,2.3cqw,0.875rem)]`}
@@ -258,21 +282,21 @@ export function EcuadorMap({ leaders }: EcuadorMapProps) {
           className={`${CARD_CLASS} max-w-[54%] items-center gap-[0.55em] text-[clamp(0.6875rem,2.75cqw,1rem)]`}
         >
           <span
-            style={
-              activeLeader ? { backgroundColor: activeLeader.color } : undefined
-            }
+            style={swatchColor ? { backgroundColor: swatchColor } : undefined}
             className={`${SWATCH_CLASS} ${
-              activeLeader ? "" : active ? "bg-results-blue" : "bg-[#a3b5d0]"
+              swatchColor ? "" : active ? "bg-results-blue" : "bg-[#a3b5d0]"
             }`}
           />
           <span className="min-w-0">
             <span className="block font-bold text-black">
-              {active ? active.name : NO_VOTES_LABEL}
+              {active?.name ?? selectedClub?.name ?? NO_VOTES_LABEL}
             </span>
             <span className="block text-[0.82em] font-medium text-black/60">
               {active
                 ? leaderSummary(activeLeader)
-                : `${ECUADOR_PROVINCES.length} provincias`}
+                : selectedClub
+                  ? clubSummary
+                  : `${ECUADOR_PROVINCES.length} provincias`}
             </span>
           </span>
         </div>

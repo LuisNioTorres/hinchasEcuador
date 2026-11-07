@@ -1,3 +1,4 @@
+import { SelectableClubRow } from "@/components/home/results/club-selection";
 import type { ClubResult } from "@/mocks/national-results";
 
 interface TopFiveListProps {
@@ -26,8 +27,10 @@ export function TopFiveList({ clubs }: TopFiveListProps) {
   return (
     <ol className="flex flex-col gap-3 phone:gap-1.5 tablet:gap-2 lg:gap-[1.67vw]">
       {clubs.map((club, index) => (
-        <li
+        <SelectableClubRow
           key={club.id}
+          club={{ id: club.id, name: club.name, color: club.color }}
+          label={`${club.name}, ${club.percentage}%. Resaltar en el mapa las provincias donde lidera`}
           className={`grid grid-cols-[78.06%_1fr] border-4 border-black font-bold leading-none phone:grid-cols-[2rem_minmax(0,1fr)_3.75rem] phone:overflow-hidden phone:rounded-lg phone:border phone:border-black/60 phone:font-semibold phone:first:font-extrabold tablet:grid-cols-[2.75rem_minmax(0,1fr)_4.5rem] tablet:overflow-hidden tablet:rounded-xl tablet:border tablet:border-black/60 tablet:font-semibold tablet:first:font-extrabold lg:border-[length:max(3px,0.21vw)] ${TOP_FIVE_ROW_HEIGHT}`}
         >
           <span
@@ -51,7 +54,7 @@ export function TopFiveList({ clubs }: TopFiveListProps) {
               %
             </span>
           </span>
-        </li>
+        </SelectableClubRow>
       ))}
     </ol>
   );
