@@ -45,7 +45,9 @@ Confirmado en el proyecto real el 2026-11-06: PostgreSQL 17.11, Data API respond
 | 8 | Migraciones | Se aplican con Supabase CLI. El dueño inicia sesión en su computadora y no comparte ninguna clave. |
 | 9 | Provincias y cantones | Claude los investiga en fuentes oficiales y los carga, con revisión del dueño. |
 | 10 | Privacidad | Nunca se verá públicamente quién votó por quién. Solo se publican resultados totales. |
-| 11 | Pruebas | Las pruebas de seguridad se hacen en Docker Desktop local, sin tocar el proyecto real ni dejar votos de prueba. Se necesita antes de la Fase 2. |
+| 11 | Pruebas | Las pruebas de seguridad se hacen en Docker Desktop local, sin tocar el proyecto real ni dejar votos de prueba. El dueño pidió crear primero las tablas; Docker se necesita antes de las pruebas de la Fase 4. |
+| 12 | Reglas de la Fase 2 | Aprobadas el 2026-11-06: bloqueo real del voto, perfil bloqueado al votar, `ha_votado` automático, perfil automático, correo verificado para votar, cantón de la provincia elegida, y cuenta con voto imposible de borrar. |
+| 13 | Clubes | Cualquier persona puede votar por cualquier club. La provincia del club no tiene ningún efecto en el sistema. |
 
 ## Riesgos abiertos de la auditoría (2026-11-06)
 
@@ -53,9 +55,6 @@ Se resuelven en la fase indicada, cuyo diseño debe aprobar el dueño.
 
 | Riesgo | Fase |
 | :--- | :--- |
-| La clave secreta del servidor salta RLS: hace falta un bloqueo real contra cambios y borrados de votos | 2 |
-| `ha_votado` y el voto deben actualizarse en una sola operación | 2 |
-| Definir qué pasa con el perfil al borrar una cuenta que no votó | 2 |
 | Las vistas deben leer `votos` sin abrirla al público; documentar la excepción ante el asesor de Supabase | 3 |
 | Definir qué entregan 3 de las vistas y si aparecen los clubes con 0 votos; agregar índices y medir | 3 |
 | Bloquear el cambio de correo en Supabase Auth, para evitar votar otra vez con el correo anterior | Login |
@@ -66,13 +65,13 @@ Se resuelven en la fase indicada, cuyo diseño debe aprobar el dueño.
 
 ### Fase 0: Preparación
 - [x] Proyecto creado en Supabase y conectado con Next.js
-- [x] Decisiones 1 a 11 tomadas
+- [x] Decisiones 1 a 13 tomadas
 - [x] Documentos corregidos (auditoría del 2026-11-06)
 - [x] Cambios guardados en GitHub (commit del dueño)
 - [x] CLI enlazada al proyecto real y simulación de migraciones correcta (`db push --remote --dry-run`)
 - [x] Ajustes de seguridad confirmados en el proyecto real
 - [x] Diseño de las tablas de catálogos aprobado por el dueño (2026-11-06)
-- [ ] Docker Desktop instalado (antes de la Fase 2)
+- [ ] Docker Desktop instalado (antes de las pruebas de la Fase 4)
 
 ### Fase 1: Catálogos
 - [x] Tablas de continentes, provincias, cantones y clubes (`20261106120000_crear_catalogos.sql`)
@@ -83,11 +82,14 @@ Se resuelven en la fase indicada, cuyo diseño debe aprobar el dueño.
 Fuentes de la carga: lista de INEC de 2012 publicada en una capa cartográfica que cita a INEC, más La Concordia (Asamblea Nacional, 2013) y Sevilla Don Bosco (Asamblea Nacional, 2024). Falta contrastar la lista con un archivo publicado por INEC y con el Registro Oficial. "El Empalme" se escribe con artículo, aunque INEC lo lista como "Empalme".
 
 ### Fase 2: Usuarios y votos
-- [ ] Tabla `profiles`, creada automáticamente con cada cuenta
-- [ ] Tabla `votos` con voto único y ubicación válida
-- [ ] Reglas RLS: votos inmodificables y privados
+- [x] Tablas `profiles` y `votos` creadas (`20261106140000_crear_profiles_votos.sql`)
+- [x] Permisos revisados: un visitante no puede leer ni escribir en ellas
+- [ ] Reglas probadas con usuarios y votos simulados (pendiente de Docker; ver Fase 4)
 
 ### Fase 3: Resultados
+
+Pospuesta por el dueño el 2026-11-06: las vistas se verán más adelante. Sigue por decidir si los clubes con 0 votos aparecen en los rankings.
+
 - [ ] Las 5 vistas de rankings
 - [ ] Desempate alfabético y porcentajes correctos
 - [ ] Las vistas no revelan datos de los votantes
@@ -95,6 +97,10 @@ Fuentes de la carga: lista de INEC de 2012 publicada en una capa cartográfica q
 ### Fase 4: Pruebas
 - [ ] Un visitante no puede votar ni leer votos individuales
 - [ ] Un usuario no puede votar dos veces, ni editar o borrar su voto
+- [ ] Dos votos simultáneos de la misma cuenta: solo entra uno
+- [ ] El perfil se crea automáticamente con la cuenta
+- [ ] `ha_votado` se activa con el voto, y una cuenta sin correo verificado no puede votar
+- [ ] Una cuenta sin voto se puede borrar y su perfil se borra con ella
 - [ ] Nadie puede cambiar un voto, ni siquiera con la clave secreta del servidor
 - [ ] Un usuario no puede escribir en los catálogos ni ver o editar perfiles ajenos
 - [ ] Un usuario no puede cambiar su `email` ni `ha_votado`, y su perfil queda bloqueado al votar

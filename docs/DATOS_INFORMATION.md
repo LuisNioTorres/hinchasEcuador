@@ -64,7 +64,7 @@
 
 | Campo | Tipo de Dato | Restricción | Descripción |
 | :--- | :--- | :--- | :--- |
-| `id` | `UUID` | `PRIMARY KEY`, `REFERENCES auth.users(id)` | Identificador vinculado a la cuenta de autenticación de Supabase. |
+| `id` | `UUID` | `PRIMARY KEY`, `REFERENCES auth.users(id) ON DELETE CASCADE` | Identificador vinculado a la cuenta de autenticación de Supabase. El perfil se crea automáticamente con la cuenta y se borra con ella si no ha votado. |
 | `email` | `VARCHAR(255)` | `UNIQUE`, `NOT NULL` | Correo electrónico verificado por la plataforma. |
 | `nombre_completo`| `VARCHAR(150)` | `NULLABLE` | Nombre y apellido del usuario proporcionados en el registro/OAuth. |
 | `ha_votado` | `BOOLEAN` | `DEFAULT false` | Bandera de control para saber si ya completó su proceso de votación. Solo la cambia el sistema, nunca el usuario. |
@@ -83,6 +83,7 @@
 - **Inmutabilidad y Permisos RLS (Row Level Security):**
   - **Insert:** Permitido solo una vez por usuario autenticado y únicamente a través del servidor de la plataforma. El navegador no puede insertar votos directamente en la base de datos.
   - **Update y Delete:** Estrictamente prohibidos mediante políticas RLS en PostgreSQL. Ningún usuario ni la interfaz pueden editar o eliminar un voto emitido.
+- **Correo Verificado:** La base de datos rechaza el voto de una cuenta sin correo verificado.
 - **Privacidad del Voto:** Nunca se mostrará quién votó por quién. Los usuarios y visitantes no pueden leer filas individuales de la tabla `votos`; solo acceden a resultados totales.
 - **Protección contra Bots en la Votación:** La votación incorporará protección contra bots mediante Cloudflare Turnstile (preferentemente) o Google reCAPTCHA v3.
   - El usuario normal solo vota, sin resolver ningún CAPTCHA. La protección funciona de manera invisible y solo se activará una verificación adicional cuando el sistema detecte actividad de robot.
@@ -165,7 +166,7 @@ Para garantizar consultas ultrarrápidas y sin sobrecargar la base de datos, las
 - **Inmutabilidad Absoluta del Voto:**
   - **INSERT:** Prohibido directamente para los roles de usuario público (`authenticated` y `anon`). El servidor de la plataforma registra el voto después de validar la sesión y la protección contra bots, con credenciales que nunca salen del servidor. Solo se acepta un voto por usuario, garantizado por `UNIQUE(usuario_id)`.
   - **SELECT:** Prohibido sobre filas individuales de `votos` para los roles de usuario público. Los resultados se consultan mediante las vistas de totales.
-  - **UPDATE / DELETE:** Estrictamente prohibidos para los roles de usuario público (`authenticated` y `anon`). Nadie puede modificar ni eliminar un voto una vez emitido, protegiendo la integridad del censo.
+  - **UPDATE / DELETE:** Estrictamente prohibidos para los roles de usuario público (`authenticated` y `anon`). Además, un bloqueo en la base de datos rechaza cualquier cambio o borrado de un voto, incluso con la clave secreta del servidor. Solo alguien con control total de la base de datos podría quitar ese bloqueo a propósito.
 
 ---
 

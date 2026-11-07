@@ -18,7 +18,7 @@ Hosting and deployment: Vercel.
 Infrastructure protection: Cloudflare.
 Version control: GitHub.
 
-The homepage frontend is complete. The Supabase project is created and connected to Next.js (`src/lib/supabase/`). Do not implement database tables, authentication, or real voting functionality until explicitly approved.
+The homepage frontend is complete. The Supabase project is created and connected to Next.js (`src/lib/supabase/`). Database tables exist as recorded in docs/SUPABASE_SQL.md. Do not implement authentication or real voting functionality until explicitly approved.
 
 Do not introduce additional infrastructure, frameworks, databases, or major dependencies without a justified technical reason and owner approval.
 
