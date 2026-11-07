@@ -31,7 +31,7 @@ Status: completed by project owner.
 
 ## Stage 3 — Documentation and project rules
 
-Current stage.
+Status: closed. The owner approved the finished homepage on 2026-11-06.
 - Maintain the five documents in `docs/`.
 - Review and approve them with the project owner.
 - Ensure all project documentation explicitly authorizes professional responsive design decisions for tablet and mobile layouts.
@@ -112,15 +112,21 @@ Develop and review three intentionally designed experiences:
 - Run lint, tests, and production build.
 - Fix review findings and obtain owner approval.
 
-## Stage 7 — Later product functionality
+## Stage 8 — SUPABASE-SQL
 
-Separate future milestone; not part of homepage implementation:
+Current stage. The homepage stages above are closed.
+- Build the database: tables, security rules, geographic data, and ranking views.
+- Status, decisions, and checklist are in `docs/SUPABASE_SQL.md`.
+
+## Stage 9 — Later product functionality
+
+Separate future milestone:
 - Authentication and email verification.
-- Club catalogue.
-- Vote submission and one-vote-per-account enforcement.
-- Backend/database integration.
-- Real rankings and geographic aggregation.
-- CAPTCHA and security controls.
+- Club catalogue data load.
+- Vote submission through the server.
+- Connecting the website to the database.
+- Showing real rankings on the website.
+- Invisible bot protection and security controls.
 
 ## Approval gates
 

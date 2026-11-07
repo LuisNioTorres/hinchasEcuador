@@ -3,9 +3,9 @@ CLAUDE.md — Project Engineering Instructions
 
 This project is a scalable, full-stack voting platform focused initially on Ecuadorian football clubs.
 
-Its purpose is to allow users to vote for football clubs and visualize national, provincial, and city-level results.
+Its purpose is to allow users to vote for football clubs and visualize national, provincial, and canton-level results.
 
-The platform must be architected to support future expansion to additional countries without requiring fundamental architectural changes.
+The scope is Ecuador only, as simple as possible. Users abroad select only a continent. Do not build multi-country support unless the owner approves it.
 
 2. Technology Stack
 
@@ -57,6 +57,10 @@ Identify missing information or assets.
 Never invent product requirements, visible copy, brand colors, logos, images, or functionality.
 
 If requirements conflict or essential information is missing, ask the project owner before making assumptions.
+
+Before working on the database, read docs/SUPABASE_SQL.md, which records the current status, configuration, and decisions.
+
+Consult the owner before any important change to CLAUDE.md, the files in docs/, or supabase/migrations/. This includes changes to requirements, decisions, or database structure. Minor corrections and checklist updates do not require consultation.
 
 Keep CLAUDE.md concise. Detailed specifications, architecture documentation, database schemas, implementation plans, and checklists belong in their respective documentation files.
 

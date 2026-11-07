@@ -24,7 +24,7 @@ Antes de planificar, modificar o escribir cualquier línea de código, DEBES lee
 1. **`CLAUDE.md`**
    - *Propósito:* Entender las reglas de ingeniería, restricciones de seguridad, convenciones de código y límites del alcance.
 2. **`docs/PROJECT_OVERVIEW.md`**
-   - *Propósito:* Comprender el contexto general del sistema, el propósito del censo de hinchas y qué queda explícitamente fuera de esta fase (sin Supabase, sin backend, sin autenticación por ahora).
+   - *Propósito:* Comprender el contexto general del sistema, el propósito del censo de hinchas y qué queda explícitamente fuera de la etapa actual (el documento indica la etapa vigente).
 3. **`docs/DESIGN_SPECIFICATION.md`**
    - *Propósito:* Extraer la fuente de verdad visual y funcional: paleta de colores, tipografías (*Tiro Bangla* y *Montserrat*), distribución de las 3 secciones, mapa interactivo, animaciones (balón y escudo), comportamiento del header fijo y criterios de adaptación Responsive Design para desktop, tablet y mobile. Identificar las libertades de diseño autorizadas para reorganizar las interfaces sin alterar la identidad visual, el contenido ni la funcionalidad aprobada.
 4. **`docs/DEVELOPMENT_PLAN.md`**
