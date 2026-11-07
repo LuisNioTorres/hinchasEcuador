@@ -5,6 +5,7 @@ import { HeroSection } from "@/components/home/hero-section";
 import { ResultsSection } from "@/components/home/results-section";
 import { AboutSection } from "@/components/home/about-section";
 import { mockNationalResults } from "@/mocks/national-results";
+import { mockProvinceLeaders } from "@/mocks/provincial-results";
 
 export default function Home() {
   return (
@@ -13,7 +14,10 @@ export default function Home() {
       <main>
         <HeroSection />
         <SectionDivider />
-        <ResultsSection results={mockNationalResults} />
+        <ResultsSection
+          results={mockNationalResults}
+          provinceLeaders={mockProvinceLeaders}
+        />
         <SectionDivider />
         <AboutSection />
       </main>

@@ -32,7 +32,7 @@ export interface NationalResultsResponse {
   readonly data: NationalResults | null;
 }
 
-const mockTop5: readonly ClubResult[] = [
+export const mockClubs: readonly ClubResult[] = [
   {
     id: "emelec",
     name: "EMELEC",
@@ -76,5 +76,5 @@ const mockTop5: readonly ClubResult[] = [
  */
 export const mockNationalResults: NationalResultsResponse = {
   status: "ok",
-  data: { totalFans: 3000, top: mockTop5 },
+  data: { totalFans: 3000, top: mockClubs },
 };

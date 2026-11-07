@@ -8,23 +8,67 @@ import {
   GALAPAGOS_ID,
   type EcuadorProvince,
 } from "@/components/home/results/ecuador-map-data";
+import type {
+  ProvinceLeader,
+  ProvinceLeaders,
+} from "@/lib/results/province-leaders";
 
 const NO_VOTES_LABEL = "Sin votos todavía";
 
+/** Línea de frontera con resultados: oscura para que se vea también el club blanco. */
+const RESULTS_BORDER = "#1b2a4a";
+
+const CARD_CLASS =
+  "pointer-events-none absolute right-[3%] bottom-[2.5%] flex rounded-lg border border-results-blue/15 bg-white/90 px-[0.8em] py-[0.55em] leading-tight shadow-[0_0.25rem_0.875rem_rgba(29,58,115,0.12)]";
+
+/** Con borde, para que se vea también el color blanco. */
+const SWATCH_CLASS =
+  "size-[0.75em] shrink-0 rounded-full border border-black/40";
+
+interface EcuadorMapProps {
+  /** Club líder de cada provincia, por código ISO. Sin votos, la provincia queda neutra. */
+  leaders: ProvinceLeaders;
+}
+
+function leaderSummary(leader: ProvinceLeader | undefined) {
+  return leader ? `${leader.clubName} · ${leader.percentage}%` : NO_VOTES_LABEL;
+}
+
+/** Clubes que lideran alguna provincia, de más a menos provincias. */
+function getLegend(leaders: ProvinceLeaders) {
+  const rows = new Map<string, { leader: ProvinceLeader; provinces: number }>();
+  for (const leader of Object.values(leaders)) {
+    const row = rows.get(leader.clubId);
+    rows.set(leader.clubId, {
+      leader,
+      provinces: (row?.provinces ?? 0) + 1,
+    });
+  }
+  return [...rows.values()].sort(
+    (a, b) =>
+      b.provinces - a.provinces ||
+      a.leader.clubName.localeCompare(b.leader.clubName, "es"),
+  );
+}
+
 /**
- * Mapa del Ecuador por provincias (Sección 2), en su estado sin votos.
+ * Mapa del Ecuador por provincias (Sección 2): cada provincia toma el color de su
+ * club líder y, sin votos, queda en el tono neutro.
  *
  * Ocupa el 100% del ancho de su contenedor y conserva la proporción 565x643 del
  * recuadro reservado: el tamaño se controla desde el padre. Es un SVG, así que se
  * adapta a todos los tamaños de pantalla sin librerías.
  *
- * Al pasar el cursor, tocar o enfocar con teclado una provincia, se resalta y su
- * nombre aparece en la tarjeta de la esquina, que tiene sitio libre sobre la zona
- * sin tierra del mapa.
+ * Al pasar el cursor, tocar o enfocar con teclado una provincia, se resalta y la
+ * tarjeta de la esquina muestra su líder. En reposo, la tarjeta es la leyenda de
+ * colores. Ambas ocupan la zona sin tierra del mapa.
  */
-export function EcuadorMap() {
+export function EcuadorMap({ leaders }: EcuadorMapProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const active = ECUADOR_PROVINCES.find(({ id }) => id === activeId);
+  const activeLeader = activeId ? leaders[activeId] : undefined;
+  const legend = getLegend(leaders);
+  const hasResults = legend.length > 0;
   const { width, height } = ECUADOR_MAP_VIEWBOX;
 
   const provinceHandlers = (id: string) => ({
@@ -39,23 +83,29 @@ export function EcuadorMap() {
     onBlur: () => setActiveId(null),
   });
 
-  const renderProvince = ({ id, name, d }: EcuadorProvince) => (
-    <path
-      key={id}
-      d={d}
-      tabIndex={0}
-      role="img"
-      aria-label={`${name}: ${NO_VOTES_LABEL.toLowerCase()}`}
-      fillRule="evenodd"
-      strokeWidth="1"
-      strokeLinejoin="round"
-      vectorEffect="non-scaling-stroke"
-      {...provinceHandlers(id)}
-      className={`cursor-pointer transition-[fill] duration-150 outline-none motion-reduce:transition-none ${
-        id === activeId ? "fill-results-blue" : ""
-      }`}
-    />
-  );
+  const renderProvince = ({ id, name, d }: EcuadorProvince) => {
+    const leader = leaders[id];
+    const isDimmed = hasResults && activeId !== null && id !== activeId;
+
+    return (
+      <path
+        key={id}
+        d={d}
+        tabIndex={0}
+        role="img"
+        aria-label={`${name}: ${leaderSummary(leader)}`}
+        fillRule="evenodd"
+        strokeWidth={hasResults ? 0.75 : 1}
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+        style={leader ? { fill: leader.color } : undefined}
+        {...provinceHandlers(id)}
+        className={`cursor-pointer transition-[fill,opacity] duration-150 outline-none motion-reduce:transition-none ${
+          !leader && id === activeId ? "fill-results-blue" : ""
+        } ${isDimmed ? "opacity-45" : ""}`}
+      />
+    );
+  };
 
   return (
     <div
@@ -66,7 +116,7 @@ export function EcuadorMap() {
       <svg
         viewBox={`0 0 ${width} ${height}`}
         role="group"
-        aria-label={`Mapa del Ecuador por provincias. ${NO_VOTES_LABEL}.`}
+        aria-label={`Mapa del Ecuador por provincias.${hasResults ? "" : ` ${NO_VOTES_LABEL}.`}`}
         className="absolute inset-0 block size-full select-none"
       >
         <defs>
@@ -85,6 +135,9 @@ export function EcuadorMap() {
             width="120%"
             height="125%"
           >
+            {/* Silueta de un solo color, aunque las provincias tengan colores de club. */}
+            <feFlood floodColor="#a3b5d0" />
+            <feComposite in2="SourceAlpha" operator="in" />
             <feDropShadow
               dx="0"
               dy="7"
@@ -139,11 +192,9 @@ export function EcuadorMap() {
           aria-hidden="true"
           filter="url(#ecuador-map-shadow)"
           className="pointer-events-none"
-          fill="#a3b5d0"
-          stroke="#a3b5d0"
         />
 
-        <g fill="#cfdbec" stroke="#ffffff">
+        <g fill="#cfdbec" stroke={hasResults ? RESULTS_BORDER : "#ffffff"}>
           <g id="ecuador-map-mainland">
             {ECUADOR_PROVINCES.filter(({ id }) => id !== GALAPAGOS_ID).map(
               renderProvince,
@@ -159,7 +210,7 @@ export function EcuadorMap() {
           <path
             d={active.d}
             fill="none"
-            stroke="#ffffff"
+            stroke={hasResults ? RESULTS_BORDER : "#ffffff"}
             strokeWidth="2"
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
@@ -181,24 +232,51 @@ export function EcuadorMap() {
         Galápagos
       </span>
 
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute right-[3%] bottom-[2.5%] flex max-w-[54%] items-center gap-[0.55em] rounded-lg border border-results-blue/15 bg-white/90 px-[0.8em] py-[0.55em] text-[clamp(0.6875rem,2.75cqw,1rem)] leading-tight shadow-[0_0.25rem_0.875rem_rgba(29,58,115,0.12)]"
-      >
-        <span
-          className={`size-[0.6em] shrink-0 rounded-full transition-colors duration-150 motion-reduce:transition-none ${
-            active ? "bg-results-blue" : "bg-[#a3b5d0]"
-          }`}
-        />
-        <span className="min-w-0">
-          <span className="block font-bold text-black">
-            {active ? active.name : NO_VOTES_LABEL}
+      {hasResults && !active ? (
+        <div
+          aria-hidden="true"
+          className={`${CARD_CLASS} w-[37%] min-w-fit flex-col items-stretch gap-[0.3em] text-[clamp(0.5625rem,2.3cqw,0.875rem)]`}
+        >
+          {legend.map(({ leader, provinces }) => (
+            <span key={leader.clubId} className="flex items-center gap-[0.5em]">
+              <span
+                style={{ backgroundColor: leader.color }}
+                className={SWATCH_CLASS}
+              />
+              <span className="font-semibold whitespace-nowrap text-black">
+                {leader.clubName}
+              </span>
+              <span className="ml-auto pl-[0.5em] font-bold text-black/60 tabular-nums">
+                {provinces}
+              </span>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div
+          aria-hidden="true"
+          className={`${CARD_CLASS} max-w-[54%] items-center gap-[0.55em] text-[clamp(0.6875rem,2.75cqw,1rem)]`}
+        >
+          <span
+            style={
+              activeLeader ? { backgroundColor: activeLeader.color } : undefined
+            }
+            className={`${SWATCH_CLASS} ${
+              activeLeader ? "" : active ? "bg-results-blue" : "bg-[#a3b5d0]"
+            }`}
+          />
+          <span className="min-w-0">
+            <span className="block font-bold text-black">
+              {active ? active.name : NO_VOTES_LABEL}
+            </span>
+            <span className="block text-[0.82em] font-medium text-black/60">
+              {active
+                ? leaderSummary(activeLeader)
+                : `${ECUADOR_PROVINCES.length} provincias`}
+            </span>
           </span>
-          <span className="block text-[0.82em] font-medium text-black/60">
-            {active ? NO_VOTES_LABEL : `${ECUADOR_PROVINCES.length} provincias`}
-          </span>
-        </span>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

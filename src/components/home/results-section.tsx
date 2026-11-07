@@ -1,10 +1,12 @@
 import { EcuadorMap } from "@/components/home/results/ecuador-map";
 import { TopFiveList } from "@/components/home/results/top-five-list";
 import { ResultsState } from "@/components/home/results/results-state";
+import type { ProvinceLeaders } from "@/lib/results/province-leaders";
 import type { NationalResultsResponse } from "@/mocks/national-results";
 
 interface ResultsSectionProps {
   results: NationalResultsResponse;
+  provinceLeaders: ProvinceLeaders;
 }
 
 /**
@@ -24,10 +26,12 @@ interface ResultsSectionProps {
  *   la nota entren en la misma rejilla.
  * - wide: mapa a la izquierda y TOP 5 a la derecha, como en desktop.
  *
- * El mapa muestra por ahora el estado sin votos. El TOP 5 no tiene interacción
- * todavía: la selección de club se implementará junto con los resultados del mapa.
+ * El TOP 5 no tiene interacción todavía.
  */
-export function ResultsSection({ results }: ResultsSectionProps) {
+export function ResultsSection({
+  results,
+  provinceLeaders,
+}: ResultsSectionProps) {
   const { status, data } = results;
   const isOk = status === "ok" && data !== null;
 
@@ -47,7 +51,7 @@ export function ResultsSection({ results }: ResultsSectionProps) {
 
       <div className="mt-10 flex flex-col gap-10 phone:mt-2.5 phone:gap-3 tablet:contents wide:mt-6 wide:flex-row wide:items-center wide:gap-[5vw] lg:mt-0 lg:flex-row lg:items-start lg:gap-0">
         <div className="phone:order-last phone:mx-auto phone:w-[min(100%,18.125rem,calc((100svh-var(--header-h)-var(--action-h)-3rem)*0.8787))] tablet:mt-8 tablet:w-full wide:w-[36%] wide:shrink-0 lg:mt-[3.07vw] lg:ml-[11.98vw] lg:w-[29.43vw] lg:shrink-0">
-          <EcuadorMap />
+          <EcuadorMap leaders={provinceLeaders} />
         </div>
 
         <div className="phone:mx-auto phone:w-full phone:max-w-[23.75rem] tablet:row-span-2 tablet:mt-8 tablet:min-w-0 tablet:self-center wide:min-w-0 wide:flex-1 lg:mt-[2.76vw] lg:ml-[15.36vw] lg:w-[30.63vw] lg:shrink-0">
