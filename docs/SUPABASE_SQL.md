@@ -95,9 +95,9 @@ Pospuesta por el dueño el 2026-11-06: las vistas se verán más adelante. Sigue
 - [ ] Las vistas no revelan datos de los votantes
 
 ### Fase 4: Pruebas
-Ejecutadas en Docker local el 2026-11-07, sin tocar el proyecto real: 64 de 64 pruebas correctas. Se repiten con `supabase/tests/fase4.mjs`; las instrucciones están al inicio del archivo.
+Ejecutadas en Docker local el 2026-11-07, sin tocar el proyecto real: 65 de 65 pruebas correctas. Se repiten con `supabase/tests/fase4.mjs`; las instrucciones están al inicio del archivo.
 
-Revisión de solo lectura del proyecto real (2026-11-07): las 4 migraciones coinciden. `profiles` y `votos` tienen los mismos permisos que en local, y sus políticas y triggers están activos. Se encontraron dos temas, que corrige `20261107120000_corregir_permisos.sql` (probada en local; **aún sin aplicar en el proyecto real**):
+Revisión del proyecto real (2026-11-07): las migraciones coinciden. `profiles` y `votos` tienen los mismos permisos que en local, y sus políticas y triggers están activos. Se encontraron dos temas, que corrige `20261107120000_corregir_permisos.sql` (aplicada el 2026-11-07). Después de aplicarla, el asesor ya no da advertencias ni errores; quedan 6 avisos informativos, a revisar en la Fase 3 (índices) o intencionales (`votos` sin políticas):
 
 - El asesor advierte que `anon` y `authenticated` pueden ejecutar `public.rls_auto_enable()`, función de Automatic RLS que solo existe en el proyecto real. Una copia probada en local rechazó la llamada, por ser de tipo `event_trigger`.
 - En el proyecto real, `service_role` conserva `TRUNCATE`, `REFERENCES`, `TRIGGER` y `MAINTAIN` en los catálogos, y no puede leerlos. La migración de catálogos solo quitó permisos a `anon` y `authenticated`.
@@ -113,7 +113,7 @@ Revisión de solo lectura del proyecto real (2026-11-07): las 4 migraciones coin
 - [x] Un usuario no puede cambiar su `email` ni `ha_votado`, y su perfil queda bloqueado al votar
 - [x] Un cantón de otra provincia es rechazado
 - [x] Una cuenta que ya votó no se puede borrar
-- [ ] Revisión con el asesor de seguridad de Supabase (ejecutado en el proyecto real; falta resolver sus 2 advertencias)
+- [x] Revisión con el asesor de seguridad de Supabase en el proyecto real
 - [x] Lint y build correctos
 
 ## Catálogo de clubes
