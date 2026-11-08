@@ -1,43 +1,80 @@
 "use client";
 
 import { useId, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Mail, ShieldCheck } from "lucide-react";
 import { GoogleIcon } from "@/components/login/google-icon";
+import {
+  AuthNote,
+  FieldError,
+  PRIMARY_BUTTON,
+  SECONDARY_BUTTON,
+  Spinner,
+} from "@/components/login/auth-ui";
+import {
+  AUTH_ROUTES,
+  SIMULATED_DELAY_MS,
+  rememberEmail,
+  wait,
+} from "@/lib/auth/simulation";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+type Pending = "google" | "email" | null;
+
 /**
- * Formulario de acceso: Google o enlace al correo, sin contraseñas
+ * Formulario de acceso: Google o correo con enlace y código, sin contraseñas
  * (docs/DATOS_INFORMATION.md, Módulo 3).
  *
- * SOLO DISEÑO: todavía no se conecta con Supabase Auth, porque la autenticación real
- * aún no está aprobada (CLAUDE.md). El correo se valida aquí solo para mostrar el
- * estado de error; la validación definitiva irá en el servidor.
+ * SIMULACIÓN: todavía no se conecta con Supabase Auth, porque la autenticación real
+ * aún no está aprobada (CLAUDE.md). Simula el caso perfecto:
+ * - Google: entra directo a la página de usuario logueado (Google ya da el nombre).
+ * - Correo: pasa a "Revisa tu correo".
+ * El correo se valida aquí solo para mostrar el estado de error; la validación
+ * definitiva irá en el servidor.
  */
 export function LoginForm() {
   const id = useId();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState<Pending>(null);
 
   const emailId = `${id}-email`;
   const errorId = `${id}-error`;
   const hintId = `${id}-hint`;
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleGoogle = async () => {
+    setPending("google");
+    await wait(SIMULATED_DELAY_MS);
+    router.push(AUTH_ROUTES.loggedIn);
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError(
-      EMAIL_PATTERN.test(email.trim()) ? null : "Ingresa un correo válido.",
-    );
+    const value = email.trim();
+    if (!EMAIL_PATTERN.test(value)) {
+      setError("Ingresa un correo válido.");
+      return;
+    }
+    setPending("email");
+    rememberEmail(value);
+    await wait(SIMULATED_DELAY_MS);
+    router.push(AUTH_ROUTES.checkEmail);
   };
 
   return (
     <div className="flex flex-col gap-5">
       <button
         type="button"
-        className="flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-black/15 bg-white text-[0.9375rem] font-semibold text-black shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-colors hover:bg-[#f4f7fc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-results-blue"
+        onClick={handleGoogle}
+        disabled={pending !== null}
+        className={SECONDARY_BUTTON}
       >
-        <GoogleIcon className="size-5" />
-        Continuar con Google
+        {pending === "google" ? <Spinner /> : <GoogleIcon className="size-5" />}
+        {pending === "google"
+          ? "Conectando con Google…"
+          : "Continuar con Google"}
       </button>
 
       <div className="flex items-center gap-3 text-xs font-medium text-black/45">
@@ -65,6 +102,7 @@ export function LoginForm() {
             autoComplete="email"
             placeholder="tucorreo@ejemplo.com"
             value={email}
+            readOnly={pending !== null}
             onChange={(event) => {
               setEmail(event.target.value);
               if (error) setError(null);
@@ -78,33 +116,33 @@ export function LoginForm() {
             }`}
           />
         </div>
-        {error && (
-          <p id={errorId} role="alert" className="text-sm text-[#b42318]">
-            {error}
-          </p>
-        )}
+        {error && <FieldError id={errorId}>{error}</FieldError>}
         <button
           type="submit"
-          className="group mt-1 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand-blue text-[0.9375rem] font-semibold text-white shadow-[0_0.5rem_1.25rem_rgba(21,78,142,0.28)] transition-[background-color,box-shadow] hover:bg-[#0f3f75] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-results-blue"
+          disabled={pending !== null}
+          className={`mt-1 ${PRIMARY_BUTTON}`}
         >
-          Continuar con correo
-          <ArrowRight
-            aria-hidden="true"
-            className="size-[1.125rem] transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
-          />
+          {pending === "email" ? (
+            <>
+              <Spinner />
+              Enviando…
+            </>
+          ) : (
+            <>
+              Continuar con correo
+              <ArrowRight
+                aria-hidden="true"
+                className="size-[1.125rem] transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
+              />
+            </>
+          )}
         </button>
       </form>
 
-      <p
-        id={hintId}
-        className="flex items-start gap-2 rounded-xl bg-[#eef4fd] px-3.5 py-3 text-[0.8125rem] leading-snug text-black/70"
-      >
-        <ShieldCheck
-          aria-hidden="true"
-          className="mt-px size-4 shrink-0 text-results-blue"
-        />
-        Sin contraseñas: te enviaremos un enlace a tu correo para entrar.
-      </p>
+      <AuthNote id={hintId} icon={<ShieldCheck aria-hidden="true" />}>
+        Sin contraseñas: te enviaremos un enlace y un código a tu correo para
+        entrar.
+      </AuthNote>
     </div>
   );
 }

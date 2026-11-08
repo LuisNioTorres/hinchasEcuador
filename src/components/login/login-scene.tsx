@@ -28,7 +28,7 @@ export function LoginScene() {
       className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[linear-gradient(160deg,#f7fbff_0%,#e4efff_48%,#cddff9_100%)]"
     >
       {/* Luces con los colores de la bandera. */}
-      <div className="absolute -top-[12%] -left-[10%] size-[55%] rounded-full bg-[#FFD016]/25 blur-3xl" />
+      <div className="absolute -top-[8%] -left-[8%] size-[30%] rounded-full bg-[#FFD016]/15 blur-3xl" />
       <div className="absolute top-[30%] -right-[15%] size-[50%] rounded-full bg-[#376CD3]/20 blur-3xl" />
       <div className="absolute -bottom-[20%] left-[5%] size-[45%] rounded-full bg-[#EB2323]/10 blur-3xl" />
 

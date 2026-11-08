@@ -44,12 +44,15 @@
 ## Módulo 3: Usuarios, Autenticación y Registro Express
 
 ### 1. Reglas de Negocio
-- **Autenticación Intuitiva y Sencilla:** El ingreso se realiza mediante Supabase Auth ofreciendo botón de inicio de sesión con Google (Google Auth) o correo electrónico. Sin procesos complejos de contraseñas ni códigos de verificación manual.
-- **Registro con Cualquier Correo Electrónico:** El usuario podrá registrarse con cualquier correo electrónico válido, ya sea Gmail, Hotmail, Outlook u otro proveedor, como se hace normalmente en plataformas modernas y profesionales. No se obligará al usuario a crear contraseñas ni se implementarán procesos complicados: el registro y la verificación deben ser rápidos, sencillos e intuitivos. El funcionamiento será el siguiente:
+- **Autenticación Intuitiva y Sencilla:** El ingreso se realiza mediante Supabase Auth ofreciendo botón de inicio de sesión con Google (Google Auth) o correo electrónico. Sin contraseñas.
+- **Un Solo Acceso para Registro e Ingreso:** No existe una pantalla separada de registro. Si el correo es nuevo, se crea la cuenta; si ya existe, el usuario entra a su misma cuenta.
+- **Opción 1, Google:** El usuario pulsa el botón de Google, elige su cuenta y, solo la primera vez, acepta compartir su nombre y correo. Queda registrado con su nombre y su correo ya verificado, y pasa al formulario de voto.
+- **Opción 2, Registro con Cualquier Correo Electrónico (método híbrido):** El usuario podrá registrarse con cualquier correo electrónico válido, ya sea Gmail, Hotmail, Outlook u otro proveedor. No se obligará al usuario a crear contraseñas: el registro y la verificación deben ser rápidos, sencillos e intuitivos. El funcionamiento será el siguiente:
   1. El usuario introduce su correo electrónico.
-  2. La plataforma le envía un correo de verificación para comprobar que realmente tiene acceso a esa dirección.
-  3. El usuario verifica su correo mediante el enlace recibido.
+  2. La plataforma le envía un único correo con dos formas de entrar: un botón de enlace mágico y, debajo, un código de un solo uso. Ejemplo: "Haz clic aquí para iniciar sesión [Botón de Enlace Mágico]. Si el botón no funciona, ingresa el siguiente código en la aplicación: 482 910."
+  3. El usuario pulsa el enlace o escribe el código en la plataforma. El código evita los fallos típicos del enlace: correos como Hotmail u Outlook que revisan los enlaces y pueden gastarlos antes que el usuario, abrir el correo en otro dispositivo o dentro de la app de correo.
   4. Una vez verificado, puede ingresar a la plataforma y utilizarla normalmente.
+- **Sesión Persistente:** La sesión queda guardada en el dispositivo y el usuario no tiene que volver a entrar. Solo repite el acceso desde otro dispositivo, si borra los datos del navegador o si cierra sesión. En ese caso entra a su misma cuenta, sin registrarse de nuevo.
 - **Datos Mínimos:** Únicamente se requiere el correo electrónico y el nombre/apellido básico al momento de autenticarse. No se solicitan datos innecesarios (sin cédula, sin teléfono, sin dirección).
 - **Flujo en Dos Pasos:**
   1. El usuario hace clic en **VOTAR** y se autentica de forma transparente.
