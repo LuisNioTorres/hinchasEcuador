@@ -108,9 +108,10 @@
   }
 }
 
+/* lg+: header con el estilo del login (logo y píldoras), 72px. PROPUESTA en revisión. */
 @media (min-width: 64rem) {
   :root {
-    --header-h: 2.8125rem;
+    --header-h: 4.5rem;
   }
 }
 
