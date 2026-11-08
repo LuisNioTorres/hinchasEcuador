@@ -3,62 +3,54 @@ import { ArrowRight } from "lucide-react";
 import { ownerAssets } from "@/config/owner-assets";
 import { OwnerImage } from "@/components/ui/owner-image";
 
-/** Ruta provisional (página en blanco) a la que dirige VOTAR en este hito. */
+/** Ruta del inicio de sesión, a la que dirige VOTAR. */
 export const VOTE_ROUTE = "/votar";
 
 /**
- * Header fijo de la Página Principal: permanece visible durante todo el scroll.
- * Mide 45px por debajo de lg y 72px en lg+ (--header-h).
+ * Header fijo de la Página Principal, con el mismo estilo que el del login: barra
+ * blanca translúcida con desenfoque, logo, eslogan en Montserrat y VOTAR como
+ * píldora azul con flecha. Permanece visible durante todo el scroll. Alto en
+ * --header-h: 60px por debajo de lg, 52px con el teléfono girado y 72px en lg+.
  *
- * VOTAR: Tiro Bangla tiene métricas verticales asimétricas; `pt-[0.2em]` compensa
- * el desfase para que la palabra quede centrada ópticamente (verificado midiendo
- * píxeles en capturas).
+ * El desenfoque va en una capa interna (`before`) y no en el header: un
+ * `backdrop-filter` en el header convertiría a la cápsula del teléfono, que es
+ * `fixed`, en relativa al header en vez de al viewport.
  *
- * Teléfono en vertical (phone): el header queda solo con logo y eslogan, y
- * "¿Deseas votar?" + VOTAR pasan a una cápsula flotante compacta, centrada y al alcance del pulgar,
- * y con el botón relleno para que sea la acción dominante. Es `fixed` dentro del
- * header sticky: el header no debe tener transform ni filter, o dejaría de
- * anclarse al viewport (el `backdrop-blur` solo se aplica en lg+, donde la cápsula
- * no existe).
+ * Teléfono en vertical (phone): la barra queda con logo y eslogan, y
+ * "¿Deseas votar?" + VOTAR pasan a una cápsula flotante centrada abajo, al alcance
+ * del pulgar, con el mismo estilo de vidrio.
  *
- * Tablet: una sola fila, con VOTAR relleno y redondo. El botón mide 36px de alto
- * para caber en el header; `after` amplía su zona táctil a 44px.
- *
- * lg+ (PROPUESTA en revisión): mismo estilo que el header del login. Barra
- * translúcida con desenfoque, logo más grande, eslogan en Montserrat y VOTAR como
- * píldora azul con flecha, a juego con "Volver al inicio".
- *
- * Horizontal: una sola fila con VOTAR siempre a la vista. Por debajo de 640px no
- * cabe "¿Deseas votar?" y se oculta.
+ * Tablet, teléfono girado y lg+: una sola fila. Por debajo de 640px de ancho no
+ * cabe "¿Deseas votar?" y se oculta (VOTAR sigue a la vista).
  */
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 h-(--header-h) border-b border-divider bg-white font-tiro text-black max-lg:pt-[env(safe-area-inset-top)] lg:border-black/5 lg:bg-white/75 lg:font-montserrat lg:backdrop-blur-md">
-      <div className="flex h-full items-center justify-between gap-2 max-lg:px-(--page-x) sm:gap-4 lg:px-[max(2.5rem,4vw)]">
-        <div className="flex items-center gap-3 max-lg:min-w-0 max-sm:gap-2 lg:gap-5">
-          <div className="w-10 shrink-0 min-[360px]:w-[2.875rem] lg:w-[clamp(4.5rem,5.2vw,6rem)]">
+    <header className="sticky top-0 z-50 h-(--header-h) border-b border-black/5 pt-[env(safe-area-inset-top)] font-montserrat text-black before:absolute before:inset-0 before:-z-10 before:bg-white/75 before:backdrop-blur-md lg:pt-0">
+      <div className="flex h-full items-center justify-between gap-3 px-(--page-x) lg:px-[max(2.5rem,4vw)]">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4 lg:gap-5">
+          <div className="w-[3.25rem] shrink-0 wide:w-12 tablet:w-[3.75rem] lg:w-[clamp(4.5rem,5.2vw,6rem)]">
             <OwnerImage
               asset={ownerAssets.companyIcon}
-              sizes="(min-width: 64rem) 96px, 46px"
+              sizes="(min-width: 64rem) 96px, 60px"
             />
           </div>
-          <p className="text-[0.9375rem] italic leading-tight max-sm:text-[clamp(0.8125rem,3.7vw,0.9375rem)] md:max-lg:whitespace-nowrap phone:text-[clamp(0.8125rem,3.8vw,0.9375rem)] phone:whitespace-nowrap min-[45.375rem]:tablet:whitespace-nowrap lg:border-l lg:border-black/10 lg:pl-5 lg:text-[0.8125rem] lg:font-semibold lg:tracking-wide lg:text-[#0b1f3f]/75 lg:uppercase lg:not-italic">
+          <p className="min-w-0 border-l border-black/10 pl-3 text-[0.6875rem] leading-tight font-semibold tracking-wide text-[#0b1f3f]/75 uppercase sm:pl-4 sm:text-xs lg:pl-5 lg:text-[0.8125rem]">
             Demuestra la pasión por tu equipo
           </p>
         </div>
 
-        <div className="flex items-center justify-end gap-3 max-lg:shrink-0 phone:fixed phone:bottom-[max(0.75rem,env(safe-area-inset-bottom))] phone:left-1/2 phone:h-[3.25rem] phone:w-max phone:-translate-x-1/2 phone:gap-2.5 phone:rounded-full phone:border phone:border-black/10 phone:bg-white phone:pr-1 phone:pl-4 phone:shadow-[0_6px_20px_rgba(0,0,0,0.2)] lg:gap-4">
-          <p className="text-lg leading-none text-brand-blue wide:max-sm:hidden tablet:max-sm:hidden max-lg:whitespace-nowrap phone:text-base lg:text-sm lg:font-semibold lg:text-black/70">
+        <div className="flex shrink-0 items-center justify-end gap-3 phone:fixed phone:bottom-[max(0.75rem,env(safe-area-inset-bottom))] phone:left-1/2 phone:h-[3.25rem] phone:w-max phone:-translate-x-1/2 phone:gap-3 phone:rounded-full phone:border phone:border-black/10 phone:bg-white/80 phone:pr-1 phone:pl-4 phone:shadow-[0_0.75rem_1.75rem_rgba(29,58,115,0.22)] phone:backdrop-blur-md lg:gap-4">
+          <p className="text-sm leading-none font-semibold whitespace-nowrap text-black/70 wide:max-sm:hidden tablet:max-sm:hidden">
             ¿Deseas votar?
           </p>
           <Link
             href={VOTE_ROUTE}
-            className="group relative inline-flex h-9 min-w-28 items-center max-sm:min-w-[5.5rem] max-sm:px-3 justify-center rounded-2xl border-[3px] border-brand-blue px-4 pt-[0.2em] text-lg leading-none text-brand-blue transition-colors after:absolute after:inset-x-0 after:-inset-y-1 hover:bg-brand-blue/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-blue phone:h-11 phone:after:hidden phone:min-w-[6.5rem] phone:rounded-full phone:bg-brand-blue phone:text-lg phone:tracking-wide phone:text-white phone:transition-transform phone:hover:bg-brand-blue phone:active:scale-95 tablet:min-w-[7.5rem] tablet:rounded-full tablet:bg-brand-blue tablet:tracking-wide tablet:text-white tablet:transition-transform tablet:hover:bg-brand-blue tablet:active:scale-95 lg:h-10 lg:min-w-0 lg:gap-2 lg:rounded-full lg:border-0 lg:bg-brand-blue lg:px-5 lg:pt-0 lg:text-sm lg:font-semibold lg:tracking-wider lg:text-white lg:shadow-[0_0.5rem_1.25rem_rgba(21,78,142,0.28)] lg:transition-[background-color,scale] lg:hover:bg-[#0f3f75] lg:focus-visible:outline-results-blue lg:active:scale-95 motion-reduce:lg:active:scale-100"
+            className="group relative inline-flex h-10 items-center justify-center gap-2 rounded-full bg-brand-blue px-5 text-sm leading-none font-semibold tracking-wider text-white shadow-[0_0.5rem_1.25rem_rgba(21,78,142,0.28)] transition-[background-color,scale] after:absolute after:inset-x-0 after:-inset-y-1 hover:bg-[#0f3f75] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-results-blue active:scale-95 motion-reduce:active:scale-100 phone:h-11 phone:after:hidden wide:h-9 wide:px-4"
           >
             VOTAR
             <ArrowRight
               aria-hidden="true"
-              className="hidden size-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none lg:block"
+              className="size-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
             />
           </Link>
         </div>

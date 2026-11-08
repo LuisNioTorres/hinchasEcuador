@@ -24,8 +24,8 @@
   --background: #ffffff;
   --foreground: #000000;
 
-  /* Alto del header fijo: 45px en todas las pantallas. */
-  --header-h: calc(2.8125rem + env(safe-area-inset-top, 0px));
+  /* Alto del header fijo: 60px por debajo de lg (más el notch). */
+  --header-h: calc(3.75rem + env(safe-area-inset-top, 0px));
 
   /* Margen lateral de página por debajo de desktop; respeta el notch en horizontal. */
   --page-x: max(
@@ -108,7 +108,14 @@
   }
 }
 
-/* lg+: header con el estilo del login (logo y píldoras), 72px. PROPUESTA en revisión. */
+/* Teléfono en horizontal (poca altura): header de 52px. */
+@media (orientation: landscape) and (height <= 31.25rem) {
+  :root {
+    --header-h: calc(3.25rem + env(safe-area-inset-top, 0px));
+  }
+}
+
+/* Laptop y escritorio (lg+): header de 72px. */
 @media (min-width: 64rem) {
   :root {
     --header-h: 4.5rem;
