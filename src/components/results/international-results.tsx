@@ -1,47 +1,22 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Globe2 } from "lucide-react";
 import {
   ChoroplethMap,
   type MapRegion,
 } from "@/components/results/choropleth-map";
 import { PanelTitle } from "@/components/results/panel-layout";
 import { RankingTable } from "@/components/results/ranking-table";
+import { useResultsData } from "@/components/results/results-data";
 import { TopFive } from "@/components/results/top-five";
 import {
   WORLD_CONTINENTS,
   WORLD_MAP_VIEWBOX,
 } from "@/components/results/world-map-data";
-import { formatVotes, type Ranking } from "@/lib/results/rankings";
-import {
-  CONTINENT_RANKINGS,
-  INTERNATIONAL_RANKING,
-} from "@/mocks/abroad-votes";
+import { formatVoteCount, type Ranking } from "@/lib/results/rankings";
 import { clubOf } from "@/mocks/catalog-lookup";
 
-const rankingOf = (continentId: string): Ranking =>
-  CONTINENT_RANKINGS.get(continentId) ?? { total: 0, entries: [] };
-
-const WORLD_REGIONS: MapRegion[] = WORLD_CONTINENTS.map((continent) => {
-  const lead = rankingOf(continent.id).entries[0];
-  return {
-    id: continent.id,
-    name: continent.name,
-    d: continent.d,
-    leader: lead ? clubOf(lead.clubId) : null,
-    percentage: lead?.percentage ?? 0,
-    votes: lead?.votes ?? 0,
-  };
-});
-
-/** Al abrir, el continente con más votos; en empate, alfabético. */
-const DEFAULT_CONTINENT =
-  [...WORLD_CONTINENTS].sort(
-    (a, b) =>
-      rankingOf(b.id).total - rankingOf(a.id).total ||
-      a.name.localeCompare(b.name, "es"),
-  )[0]?.id ?? "";
+const NO_VOTES: Ranking = { total: 0, entries: [] };
 
 /** TWO_COLUMNS con el ancho de cada bloque intercambiado: el Top 5 conserva el suyo. */
 const COLUMNS =
@@ -57,7 +32,29 @@ const WORLD_MAP_FRAME =
  */
 export function InternationalResults() {
   const id = useId();
-  const [continentId, setContinentId] = useState<string>(DEFAULT_CONTINENT);
+  const { continentRankings } = useResultsData();
+  const rankingOf = (continent: string) =>
+    continentRankings.get(continent) ?? NO_VOTES;
+  const regions: MapRegion[] = WORLD_CONTINENTS.map((continent) => {
+    const lead = rankingOf(continent.id).entries[0];
+    return {
+      id: continent.id,
+      name: continent.name,
+      d: continent.d,
+      leader: lead ? clubOf(lead.clubId) : null,
+      percentage: lead?.percentage ?? 0,
+      votes: lead?.votes ?? 0,
+    };
+  });
+  // Al abrir, el continente con más votos; en empate, alfabético.
+  const [continentId, setContinentId] = useState<string>(
+    () =>
+      [...WORLD_CONTINENTS].sort(
+        (a, b) =>
+          rankingOf(b.id).total - rankingOf(a.id).total ||
+          a.name.localeCompare(b.name, "es"),
+      )[0]?.id ?? "",
+  );
   const ranking = rankingOf(continentId);
   const name = WORLD_CONTINENTS.find((c) => c.id === continentId)?.name ?? "";
 
@@ -85,7 +82,7 @@ export function InternationalResults() {
             subtitle="Toca un continente para ver sus resultados."
           />
           <ChoroplethMap
-            regions={WORLD_REGIONS}
+            regions={regions}
             width={WORLD_MAP_VIEWBOX.width}
             height={WORLD_MAP_VIEWBOX.height}
             regionNoun="continente"
@@ -98,23 +95,9 @@ export function InternationalResults() {
         <div>
           <PanelTitle
             title={`Top 5 de ${name}`}
-            subtitle={`Sobre ${formatVotes(ranking.total)} votos de hinchas que viven en este continente.`}
+            subtitle={`Sobre ${formatVoteCount(ranking.total)} de hinchas que viven en este continente.`}
           />
-          {ranking.entries.length > 0 ? (
-            <TopFive entries={ranking.entries} title={`Top 5 de ${name}`} />
-          ) : (
-            <div className="flex flex-col justify-center rounded-[1.75rem] border border-dashed border-results-blue/30 bg-white/70 p-6 sm:p-8">
-              <span className="flex size-14 items-center justify-center rounded-2xl bg-[#eef4fd] text-results-blue">
-                <Globe2 aria-hidden="true" className="size-7" />
-              </span>
-              <p className="mt-5 text-xl font-bold tracking-tight">
-                Sin votos todavía
-              </p>
-              <p className="mt-2 text-[0.9375rem] text-black/60">
-                Aún no hay votos de hinchas en {name}.
-              </p>
-            </div>
-          )}
+          <TopFive entries={ranking.entries} title={`Top 5 de ${name}`} />
         </div>
       </div>
     </section>
@@ -130,12 +113,13 @@ const SCOPES: { key: Scope; label: string }[] = [
 
 /** Clasificación general: alterna entre los votos del Ecuador y los del exterior. */
 export function GeneralRanking({ national }: { national: Ranking }) {
+  const { internationalRanking } = useResultsData();
   const [scope, setScope] = useState<Scope>("nacional");
   const international = scope === "internacional";
 
   return (
     <RankingTable
-      ranking={international ? INTERNATIONAL_RANKING : national}
+      ranking={international ? internationalRanking : national}
       title={
         international ? "Clasificación internacional" : "Clasificación nacional"
       }

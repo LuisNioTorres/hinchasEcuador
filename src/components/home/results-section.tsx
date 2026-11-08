@@ -68,7 +68,7 @@ export function ResultsSection({
                   <span className="phone:font-bold phone:text-results-blue tablet:font-bold tablet:text-results-blue">
                     {data.totalFans}
                   </span>{" "}
-                  hinchas censados
+                  {data.totalFans === 1 ? "hincha censado" : "hinchas censados"}
                 </p>
               )}
             </div>

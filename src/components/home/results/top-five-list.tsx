@@ -16,6 +16,9 @@ export const TOP_FIVE_ROW_HEIGHT =
 /** Separación entre filas, compartida con el estado "cargando". */
 export const TOP_FIVE_GAP = "gap-3 phone:gap-1.5 tablet:gap-2 lg:gap-[1.04vw]";
 
+/** Fila sin equipo (también la del estado "cargando"). */
+export const TOP_FIVE_PLACEHOLDER_ROW = `border-4 border-black/15 bg-black/5 phone:rounded-lg phone:border phone:border-black/10 tablet:rounded-xl tablet:border tablet:border-black/10 lg:rounded-[0.95vw] lg:border lg:border-black/10 ${TOP_FIVE_ROW_HEIGHT}`;
+
 /** Tipografía de nombre y porcentaje por dispositivo (phone se define en cada celda). */
 const ROW_TEXT =
   "text-xl tablet:text-[clamp(1.0625rem,2.2vw,1.375rem)] wide:text-[clamp(1.125rem,2.6vw,1.75rem)] lg:text-[1.67vw]";
@@ -83,6 +86,17 @@ export function TopFiveList({ clubs }: TopFiveListProps) {
             </span>
           </span>
         </SelectableClubRow>
+      ))}
+      {Array.from({ length: Math.max(0, 5 - clubs.length) }, (_, i) => (
+        <li
+          key={i}
+          aria-hidden="true"
+          className={`${TOP_FIVE_PLACEHOLDER_ROW} flex items-center justify-center text-sm font-semibold text-black/40 lg:text-[1.1vw]`}
+        >
+          {clubs.length === 0 && i === 0
+            ? "Sin votos registrados"
+            : "Puesto disponible"}
+        </li>
       ))}
     </ol>
   );

@@ -26,12 +26,12 @@ import {
 } from "@/components/results/international-results";
 import { PanelTitle, TWO_COLUMNS } from "@/components/results/panel-layout";
 import { RankingTable } from "@/components/results/ranking-table";
+import { useResultsData } from "@/components/results/results-data";
 import { TopFive } from "@/components/results/top-five";
 import { Combobox, type ComboboxOption } from "@/components/vote/combobox";
-import { formatVotes, type Ranking } from "@/lib/results/rankings";
+import { formatVoteCount, type Ranking } from "@/lib/results/rankings";
 import { CANTON_NAME, CLUB_BY_ID, PROVINCE_NAME } from "@/mocks/catalog-lookup";
 import { CANTONS, PROVINCES } from "@/mocks/catalogs";
-import { NATIONAL_RANKING, PROVINCE_RESULTS } from "@/mocks/census-votes";
 
 type View = "nacional" | "provincial";
 
@@ -60,9 +60,16 @@ function regionFrom(
   };
 }
 
-const PROVINCE_REGIONS: MapRegion[] = ECUADOR_PROVINCES.map((p) =>
-  regionFrom(p.id, p.name, p.d, PROVINCE_RESULTS.get(p.id)?.ranking),
-);
+function useProvinceRegions() {
+  const { provinceResults } = useResultsData();
+  return useMemo<MapRegion[]>(
+    () =>
+      ECUADOR_PROVINCES.map((p) =>
+        regionFrom(p.id, p.name, p.d, provinceResults.get(p.id)?.ranking),
+      ),
+    [provinceResults],
+  );
+}
 
 /** Recuadro de Galápagos (está a unos 1000 km del continente), como en la página principal. */
 const GalapagosInset = (
@@ -229,16 +236,18 @@ function NationalView({
 }: {
   onOpenProvince: (id: string) => void;
 }) {
+  const { nationalRanking } = useResultsData();
+  const provinceRegions = useProvinceRegions();
   return (
     <>
       <div className={TWO_COLUMNS}>
         <div>
           <PanelTitle
             title="Top 5 del Ecuador"
-            subtitle={`Sobre ${formatVotes(NATIONAL_RANKING.total)} votos de hinchas que viven en el país.`}
+            subtitle={`Sobre ${formatVoteCount(nationalRanking.total)} de hinchas que viven en el país.`}
           />
           <TopFive
-            entries={NATIONAL_RANKING.entries}
+            entries={nationalRanking.entries}
             title="Top 5 del Ecuador"
           />
         </div>
@@ -248,7 +257,7 @@ function NationalView({
             subtitle="Cada provincia lleva el color del equipo con más votos."
           />
           <ChoroplethMap
-            regions={PROVINCE_REGIONS}
+            regions={provinceRegions}
             width={ECUADOR_MAP_VIEWBOX.width}
             height={ECUADOR_MAP_VIEWBOX.height}
             regionNoun="provincia"
@@ -260,7 +269,7 @@ function NationalView({
           />
           <div className="mt-4">
             <MapLegend
-              regions={PROVINCE_REGIONS}
+              regions={provinceRegions}
               noun={{ one: "provincia", many: "provincias" }}
             />
           </div>
@@ -268,7 +277,7 @@ function NationalView({
       </div>
       <InternationalResults />
       <div className="mt-10">
-        <GeneralRanking national={NATIONAL_RANKING} />
+        <GeneralRanking national={nationalRanking} />
       </div>
     </>
   );
@@ -284,7 +293,9 @@ function ProvincialView({
   cantonMaps: Record<string, ProvinceCantonMap> | null;
 }) {
   const id = useId();
-  const results = provinceId ? PROVINCE_RESULTS.get(provinceId) : undefined;
+  const { provinceResults } = useResultsData();
+  const provinceRegions = useProvinceRegions();
+  const results = provinceId ? provinceResults.get(provinceId) : undefined;
   const name = provinceId ? (PROVINCE_NAME.get(provinceId) ?? "") : "";
   const map = provinceId ? cantonMaps?.[provinceId] : undefined;
 
@@ -336,7 +347,7 @@ function ProvincialView({
             </p>
           </div>
           <ChoroplethMap
-            regions={PROVINCE_REGIONS}
+            regions={provinceRegions}
             width={ECUADOR_MAP_VIEWBOX.width}
             height={ECUADOR_MAP_VIEWBOX.height}
             regionNoun="provincia"
@@ -354,8 +365,7 @@ function ProvincialView({
               {name}
             </h3>
             <p className="text-sm font-semibold text-black/55 tabular-nums">
-              {formatVotes(results.ranking.total)} votos · {cantonCount}{" "}
-              cantones
+              {formatVoteCount(results.ranking.total)} · {cantonCount} cantones
             </p>
           </div>
 

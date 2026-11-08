@@ -39,9 +39,15 @@ export function ResultsHero({
   provinceColors: ReadonlyMap<string, string>;
 }) {
   const stats = [
-    { value: formatVotes(totalVotes), label: "hinchas censados" },
+    {
+      value: formatVotes(totalVotes),
+      label: totalVotes === 1 ? "hincha censado" : "hinchas censados",
+    },
     { value: "24", label: "provincias" },
-    { value: String(clubsWithVotes), label: "equipos con votos" },
+    {
+      value: String(clubsWithVotes),
+      label: clubsWithVotes === 1 ? "equipo con votos" : "equipos con votos",
+    },
   ];
 
   return (
@@ -126,6 +132,16 @@ export function ResultsHero({
         </svg>
 
         <ol aria-label="Podio nacional">
+          {podium.length === 0 && (
+            <li
+              className={`absolute flex items-center gap-3 rounded-2xl bg-white/95 py-2.5 pr-4 pl-2.5 shadow-[0_1rem_2rem_rgba(15,30,60,0.2)] ring-1 ring-black/5 backdrop-blur lg:py-3.5 lg:pr-6 lg:pl-3.5 ${PODIUM_PLACEMENT[0]}`}
+            >
+              <span className="size-12 rounded-full bg-[#E5E7EB] lg:size-14" />
+              <span className="text-base leading-tight font-bold lg:text-lg">
+                Sin votos registrados
+              </span>
+            </li>
+          )}
           {podium.map((entry, i) => {
             const club = clubOf(entry.clubId);
             return (

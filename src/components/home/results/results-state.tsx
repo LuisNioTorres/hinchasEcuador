@@ -1,6 +1,6 @@
 import {
   TOP_FIVE_GAP,
-  TOP_FIVE_ROW_HEIGHT,
+  TOP_FIVE_PLACEHOLDER_ROW,
 } from "@/components/home/results/top-five-list";
 import type { ResultsStatus } from "@/mocks/national-results";
 
@@ -29,7 +29,7 @@ export function ResultsState({ status }: ResultsStateProps) {
           {ROWS.map((row) => (
             <li
               key={row}
-              className={`animate-pulse border-4 border-black/15 bg-black/5 motion-reduce:animate-none phone:rounded-lg phone:border phone:border-black/10 tablet:rounded-xl tablet:border tablet:border-black/10 lg:rounded-[0.95vw] lg:border lg:border-black/10 ${TOP_FIVE_ROW_HEIGHT}`}
+              className={`animate-pulse motion-reduce:animate-none ${TOP_FIVE_PLACEHOLDER_ROW}`}
             />
           ))}
         </ul>

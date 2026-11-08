@@ -163,6 +163,12 @@ export function RankingTable({
         </tbody>
       </table>
 
+      {!searching && total === 0 && (
+        <p className="py-6 text-center text-sm text-black/55">
+          Sin votos registrados.
+        </p>
+      )}
+
       {searching && rows.length === 0 && (
         <p className="py-6 text-center text-sm text-black/55">
           Ningún equipo con votos coincide con «{query.trim()}».

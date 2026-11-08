@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, type MouseEvent, type ReactNode } from "react";
+import { useId, useState, type MouseEvent, type ReactNode } from "react";
 import { ArrowRight, MousePointerClick } from "lucide-react";
 import { ClubBadge } from "@/components/vote/club-badge";
-import { formatPercentage, formatVotes } from "@/lib/results/rankings";
+import { formatPercentage, formatVoteCount } from "@/lib/results/rankings";
 import type { Club } from "@/mocks/catalogs";
 
 export interface MapRegion {
@@ -57,6 +57,10 @@ export function ChoroplethMap({
   onSelect?: (id: string) => void;
   className?: string;
 }) {
+  const noVotesPattern = useId();
+  const hasEmptyRegions = regions.some((r) => !r.leader);
+  /** La trama se ve del mismo tamaño aunque cada mapa tenga otra escala. */
+  const hatch = width / 70;
   const [hovered, setHovered] = useState<string | null>(null);
   const [ownSelected, setOwnSelected] = useState<string | null>(null);
   const selected = selectedId ?? ownSelected;
@@ -98,13 +102,35 @@ export function ChoroplethMap({
           }
         }}
       >
+        {hasEmptyRegions && (
+          <defs>
+            <pattern
+              id={noVotesPattern}
+              width={hatch}
+              height={hatch}
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(45)"
+            >
+              <rect width={hatch} height={hatch} fill={NEUTRAL} />
+              <line
+                x1={0}
+                y1={0}
+                x2={0}
+                y2={hatch}
+                stroke="#9CA3AF"
+                strokeWidth={hatch / 3}
+                strokeOpacity={0.6}
+              />
+            </pattern>
+          </defs>
+        )}
         {overlay}
         {regions.map((region) => {
           const isActive = region.id === activeId;
           const dimmed = activeId !== null && !isActive;
           const label = region.leader
             ? `${region.name}: lidera ${region.leader.name} con ${formatPercentage(region.percentage)}`
-            : `${region.name}: sin votos todavía`;
+            : `${region.name}: sin votos registrados`;
           return (
             <path
               key={region.id}
@@ -114,7 +140,7 @@ export function ChoroplethMap({
               tabIndex={0}
               aria-label={label}
               aria-pressed={region.id === selected}
-              fill={region.leader?.color ?? NEUTRAL}
+              fill={region.leader?.color ?? `url(#${noVotesPattern})`}
               stroke={isActive ? "#0b1f3f" : "#1b2a4a"}
               strokeOpacity={isActive ? 0.9 : 0.45}
               strokeWidth={isActive ? 2.25 : 0.9}
@@ -171,7 +197,7 @@ export function ChoroplethMap({
                 {active.name}
               </p>
               <p className="truncate text-[0.9375rem] leading-tight font-bold">
-                {active.leader ? active.leader.name : "Sin votos todavía"}
+                {active.leader ? active.leader.name : "Sin votos registrados"}
               </p>
               {active.leader && (
                 <p className="text-xs text-black/60 tabular-nums">
@@ -179,7 +205,7 @@ export function ChoroplethMap({
                   <span className="font-semibold text-black">
                     {formatPercentage(active.percentage)}
                   </span>{" "}
-                  · {formatVotes(active.votes)} votos
+                  · {formatVoteCount(active.votes)}
                 </p>
               )}
             </div>

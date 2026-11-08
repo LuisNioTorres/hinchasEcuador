@@ -14,7 +14,7 @@ import type {
   ProvinceLeaders,
 } from "@/lib/results/province-leaders";
 
-const NO_VOTES_LABEL = "Sin votos todavía";
+const NO_VOTES_LABEL = "Sin votos registrados";
 
 /** Línea de frontera con resultados: oscura para que se vea también el club blanco. */
 const RESULTS_BORDER = "#1b2a4a";

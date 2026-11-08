@@ -55,6 +55,11 @@ export function formatPercentage(value: number) {
   return `${value.toLocaleString("es-EC", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
 }
 
+/** Cantidad de votos con su palabra: "1 voto", "48.213 votos". */
+export function formatVoteCount(value: number) {
+  return `${formatVotes(value)} ${value === 1 ? "voto" : "votos"}`;
+}
+
 /** Número con separador de miles ("48.213"). */
 export function formatVotes(value: number) {
   return value.toLocaleString("es-EC");

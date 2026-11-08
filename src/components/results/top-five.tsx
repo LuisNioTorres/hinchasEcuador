@@ -3,6 +3,7 @@ import { ClubBadge } from "@/components/vote/club-badge";
 import { inkOn } from "@/lib/color";
 import {
   formatPercentage,
+  formatVoteCount,
   formatVotes,
   type RankingEntry,
 } from "@/lib/results/rankings";
@@ -22,7 +23,29 @@ export function TopFive({
   title: string;
 }) {
   const [leader, ...rest] = entries.slice(0, 5);
-  if (!leader) return null;
+  if (!leader) {
+    return (
+      <section aria-label={title} className="flex flex-col gap-3">
+        <article className="rounded-[1.75rem] bg-[#eef4fd] p-5 ring-1 ring-black/5 sm:p-6 lg:p-7">
+          <div className="flex items-center gap-4">
+            <span className="size-16 shrink-0 rounded-full bg-[#E5E7EB] sm:size-20 lg:size-24" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[0.6875rem] font-bold tracking-[0.14em] text-black/40 uppercase">
+                1.º · Líder
+              </p>
+              <p className="mt-1 text-xl leading-tight font-bold sm:text-2xl lg:text-[1.75rem]">
+                Sin votos registrados
+              </p>
+              <p className="mt-1 text-sm font-semibold text-black/55">
+                Todavía no hay un líder.
+              </p>
+            </div>
+          </div>
+        </article>
+        <EmptyPlaces from={2} />
+      </section>
+    );
+  }
   const leaderClub = clubOf(leader.clubId);
   const max = leader.percentage || 1;
   // Una palabra muy larga no cabe junto al porcentaje ni partiendo el nombre en líneas.
@@ -64,7 +87,7 @@ export function TopFive({
               {formatPercentage(leader.percentage)}
               <span className="font-medium opacity-80">
                 {" "}
-                · {formatVotes(leader.votes)} votos
+                · {formatVoteCount(leader.votes)}
               </span>
             </p>
           </div>
@@ -75,7 +98,7 @@ export function TopFive({
               {formatPercentage(leader.percentage)}
             </p>
             <p className="mt-1 text-xs font-medium opacity-85 tabular-nums">
-              {formatVotes(leader.votes)} votos
+              {formatVoteCount(leader.votes)}
             </p>
           </div>
         </div>
@@ -120,7 +143,44 @@ export function TopFive({
             </li>
           );
         })}
+        <EmptyRows from={rest.length + 2} />
       </ol>
     </section>
   );
+}
+
+/** Lista de puestos libres, cuando ni siquiera hay líder. */
+function EmptyPlaces({ from }: { from: number }) {
+  return (
+    <ol className="flex flex-col gap-2" start={from}>
+      <EmptyRows from={from} />
+    </ol>
+  );
+}
+
+/** Puestos sin equipo: mantienen el alto del Top 5 sin inventar resultados. */
+function EmptyRows({ from }: { from: number }) {
+  const places = Array.from(
+    { length: Math.max(0, 6 - from) },
+    (_, i) => from + i,
+  );
+  return places.map((place) => (
+    <li
+      key={place}
+      aria-hidden="true"
+      className="flex items-center gap-3 rounded-2xl border border-dashed border-black/12 bg-white/50 px-3.5 py-3 lg:gap-4 lg:px-5 lg:py-4"
+    >
+      <span className="w-5 shrink-0 text-center text-sm font-bold text-black/25 tabular-nums">
+        {place}
+      </span>
+      <span className="size-9 shrink-0 rounded-full bg-black/5 lg:size-11" />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-black/40">Puesto disponible</p>
+        <div className="mt-1.5 flex items-center gap-2">
+          <div className="h-2 flex-1 rounded-full bg-black/4" />
+          <span className="invisible text-[0.6875rem]">0</span>
+        </div>
+      </div>
+    </li>
+  ));
 }
