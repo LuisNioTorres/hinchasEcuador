@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 import { ArrowRight, MousePointerClick } from "lucide-react";
 import { ClubBadge } from "@/components/vote/club-badge";
 import { formatPercentage, formatVotes } from "@/lib/results/rankings";
@@ -17,6 +17,10 @@ export interface MapRegion {
 }
 
 const NEUTRAL = "#E5E7EB";
+
+/** Con mouse, la región elegida solo cambia al elegir otra. */
+const isMouseClick = (event: MouseEvent) =>
+  (event.nativeEvent as PointerEvent).pointerType === "mouse";
 
 /**
  * Mapa coroplético: cada región se pinta con el color de su club líder
@@ -49,10 +53,14 @@ export function ChoroplethMap({
 }) {
   const [hovered, setHovered] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  const activeId = hovered ?? selected;
+  // La selección manda sobre el hover: el cursor no debe ocultarla.
+  const activeId = selected ?? hovered;
   const active = regions.find((r) => r.id === activeId) ?? null;
 
-  const choose = (id: string) => setSelected((s) => (s === id ? null : id));
+  const choose = (id: string, event: MouseEvent) => {
+    const keep = isMouseClick(event);
+    setSelected((s) => (s === id && !keep ? null : id));
+  };
 
   return (
     <div
@@ -69,8 +77,10 @@ export function ChoroplethMap({
         className="relative mx-auto block h-full max-h-full w-full max-w-full px-[5%] pt-[5%] pb-[5.75rem] drop-shadow-[0_1rem_1.5rem_rgba(29,58,115,0.18)]"
         onPointerLeave={() => setHovered(null)}
         onClick={(event) => {
-          // Tocar fuera de las regiones limpia la selección.
-          if (event.target === event.currentTarget) setSelected(null);
+          // En táctil, tocar fuera de las regiones limpia la selección.
+          if (event.target === event.currentTarget && !isMouseClick(event)) {
+            setSelected(null);
+          }
         }}
       >
         {overlay}
@@ -98,7 +108,7 @@ export function ChoroplethMap({
               onPointerEnter={(e) =>
                 e.pointerType === "mouse" && setHovered(region.id)
               }
-              onClick={() => choose(region.id)}
+              onClick={(event) => choose(region.id, event)}
               onFocus={(e) => {
                 // Solo el foco de teclado selecciona: con clic o toque ya lo hace
                 // onClick, y seleccionar aquí haría que ese clic la deseleccionara.
