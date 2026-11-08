@@ -511,7 +511,7 @@ function Success({ card }: { card: ReactNode }) {
         <p>Gracias por ser parte del Censo Único del Ecuador.</p>
       </AuthPanelHeader>
       <div className={`mt-14 ${STACK_ONLY}`}>{card}</div>
-      <Link href="/#resultados-nacionales" className={`mt-8 ${PRIMARY_BUTTON}`}>
+      <Link href="/resultados" className={`mt-8 ${PRIMARY_BUTTON}`}>
         Ver resultados
       </Link>
     </div>
