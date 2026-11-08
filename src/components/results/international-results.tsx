@@ -2,31 +2,54 @@
 
 import { useId, useState } from "react";
 import { Globe2 } from "lucide-react";
-import { PanelTitle, TWO_COLUMNS } from "@/components/results/panel-layout";
+import {
+  ChoroplethMap,
+  type MapRegion,
+} from "@/components/results/choropleth-map";
+import { PanelTitle } from "@/components/results/panel-layout";
 import { RankingTable } from "@/components/results/ranking-table";
 import { TopFive } from "@/components/results/top-five";
-import { ClubBadge } from "@/components/vote/club-badge";
 import {
-  formatPercentage,
-  formatVotes,
-  type Ranking,
-} from "@/lib/results/rankings";
+  WORLD_CONTINENTS,
+  WORLD_MAP_VIEWBOX,
+} from "@/components/results/world-map-data";
+import { formatVotes, type Ranking } from "@/lib/results/rankings";
 import {
   CONTINENT_RANKINGS,
   INTERNATIONAL_RANKING,
 } from "@/mocks/abroad-votes";
 import { clubOf } from "@/mocks/catalog-lookup";
-import { CONTINENTS } from "@/mocks/catalogs";
 
 const rankingOf = (continentId: string): Ranking =>
   CONTINENT_RANKINGS.get(continentId) ?? { total: 0, entries: [] };
 
-/** Continentes de más a menos votos; en empate, alfabético. */
-const CONTINENTS_BY_VOTES = [...CONTINENTS].sort(
-  (a, b) =>
-    rankingOf(b.id).total - rankingOf(a.id).total ||
-    a.name.localeCompare(b.name, "es"),
-);
+const WORLD_REGIONS: MapRegion[] = WORLD_CONTINENTS.map((continent) => {
+  const lead = rankingOf(continent.id).entries[0];
+  return {
+    id: continent.id,
+    name: continent.name,
+    d: continent.d,
+    leader: lead ? clubOf(lead.clubId) : null,
+    percentage: lead?.percentage ?? 0,
+    votes: lead?.votes ?? 0,
+  };
+});
+
+/** Al abrir, el continente con más votos; en empate, alfabético. */
+const DEFAULT_CONTINENT =
+  [...WORLD_CONTINENTS].sort(
+    (a, b) =>
+      rankingOf(b.id).total - rankingOf(a.id).total ||
+      a.name.localeCompare(b.name, "es"),
+  )[0]?.id ?? "";
+
+/** TWO_COLUMNS con el ancho de cada bloque intercambiado: el Top 5 conserva el suyo. */
+const COLUMNS =
+  "grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-[clamp(2rem,4vw,4.5rem)] tablet:landscape:grid-cols-2 tablet:landscape:gap-6";
+
+/** El mapa mundial es apaisado: en lg+ tiene el mismo alto que los otros mapas. */
+const WORLD_MAP_FRAME =
+  "aspect-[6/5] w-full max-[22rem]:aspect-square sm:aspect-[16/10] tablet:landscape:aspect-[6/5] lg:aspect-auto lg:h-[clamp(30rem,36vw,38rem)]";
 
 /**
  * Resultados de los hinchas que viven fuera del Ecuador, por continente
@@ -34,11 +57,9 @@ const CONTINENTS_BY_VOTES = [...CONTINENTS].sort(
  */
 export function InternationalResults() {
   const id = useId();
-  const [continentId, setContinentId] = useState(
-    CONTINENTS_BY_VOTES[0]?.id ?? "",
-  );
+  const [continentId, setContinentId] = useState<string>(DEFAULT_CONTINENT);
   const ranking = rankingOf(continentId);
-  const name = CONTINENTS.find((c) => c.id === continentId)?.name ?? "";
+  const name = WORLD_CONTINENTS.find((c) => c.id === continentId)?.name ?? "";
 
   return (
     <section
@@ -56,7 +77,24 @@ export function InternationalResults() {
         por continente.
       </p>
 
-      <div className={`mt-6 ${TWO_COLUMNS}`}>
+      <div className={`mt-6 ${COLUMNS}`}>
+        {/* Primero en el código: a la izquierda en dos columnas y arriba en una. */}
+        <div>
+          <PanelTitle
+            title="Elige un continente"
+            subtitle="Toca un continente para ver sus resultados."
+          />
+          <ChoroplethMap
+            regions={WORLD_REGIONS}
+            width={WORLD_MAP_VIEWBOX.width}
+            height={WORLD_MAP_VIEWBOX.height}
+            regionNoun="continente"
+            hint="Toca un continente para ver sus resultados."
+            selectedId={continentId}
+            onSelect={setContinentId}
+            className={WORLD_MAP_FRAME}
+          />
+        </div>
         <div>
           <PanelTitle
             title={`Top 5 de ${name}`}
@@ -77,62 +115,6 @@ export function InternationalResults() {
               </p>
             </div>
           )}
-        </div>
-
-        {/* En una sola columna, primero se elige el continente. */}
-        <div className="order-first lg:order-none tablet:landscape:order-none">
-          <PanelTitle
-            title="Elige un continente"
-            subtitle="Ordenados de más a menos votos."
-          />
-          <ul className="grid grid-cols-2 gap-2 lg:grid-cols-1 tablet:landscape:grid-cols-1">
-            {CONTINENTS_BY_VOTES.map((continent) => {
-              const result = rankingOf(continent.id);
-              const lead = result.entries[0];
-              const leader = lead ? clubOf(lead.clubId) : null;
-              const selected = continent.id === continentId;
-              return (
-                <li key={continent.id}>
-                  <button
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => setContinentId(continent.id)}
-                    className={`flex h-full min-h-14 w-full cursor-pointer items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-results-blue lg:px-4 ${
-                      selected
-                        ? "border-brand-blue bg-[#eef4fd] shadow-[inset_0_0_0_1px_var(--color-brand-blue)]"
-                        : "border-black/6 bg-white hover:bg-[#f4f8fe]"
-                    }`}
-                  >
-                    {leader ? (
-                      <ClubBadge club={leader} className="size-9 shrink-0" />
-                    ) : (
-                      <span className="size-9 shrink-0 rounded-full bg-[#E5E7EB]" />
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm leading-tight font-bold">
-                        {continent.name}
-                      </span>
-                      <span
-                        className={`mt-0.5 block text-xs text-black/60 ${leader ? "truncate" : ""}`}
-                      >
-                        {leader ? leader.name : "Sin votos todavía"}
-                      </span>
-                    </span>
-                    {lead && (
-                      <span className="shrink-0 text-right max-[30rem]:hidden">
-                        <span className="block text-sm font-bold tabular-nums">
-                          {formatPercentage(lead.percentage)}
-                        </span>
-                        <span className="block text-[0.6875rem] text-black/50 tabular-nums">
-                          {formatVotes(result.total)} votos
-                        </span>
-                      </span>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
         </div>
       </div>
     </section>

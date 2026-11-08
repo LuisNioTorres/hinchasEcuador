@@ -37,6 +37,8 @@ export function ChoroplethMap({
   onOpen,
   openLabel,
   overlay,
+  selectedId,
+  onSelect,
   className = "",
 }: {
   regions: readonly MapRegion[];
@@ -49,17 +51,26 @@ export function ChoroplethMap({
   openLabel?: (region: MapRegion) => string;
   /** Elementos extra dentro del SVG (p. ej., el recuadro de Galápagos). */
   overlay?: ReactNode;
+  /** Región elegida, cuando la controla el componente padre. */
+  selectedId?: string;
+  /** Avisa de la región elegida; con él, siempre hay una región seleccionada. */
+  onSelect?: (id: string) => void;
   className?: string;
 }) {
   const [hovered, setHovered] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [ownSelected, setOwnSelected] = useState<string | null>(null);
+  const selected = selectedId ?? ownSelected;
   // La selección manda sobre el hover: el cursor no debe ocultarla.
   const activeId = selected ?? hovered;
   const active = regions.find((r) => r.id === activeId) ?? null;
 
   const choose = (id: string, event: MouseEvent) => {
+    if (onSelect) {
+      onSelect(id);
+      return;
+    }
     const keep = isMouseClick(event);
-    setSelected((s) => (s === id && !keep ? null : id));
+    setOwnSelected((s) => (s === id && !keep ? null : id));
   };
 
   return (
@@ -78,8 +89,12 @@ export function ChoroplethMap({
         onPointerLeave={() => setHovered(null)}
         onClick={(event) => {
           // En táctil, tocar fuera de las regiones limpia la selección.
-          if (event.target === event.currentTarget && !isMouseClick(event)) {
-            setSelected(null);
+          if (
+            event.target === event.currentTarget &&
+            !isMouseClick(event) &&
+            !onSelect
+          ) {
+            setOwnSelected(null);
           }
         }}
       >
@@ -113,7 +128,7 @@ export function ChoroplethMap({
                 // Solo el foco de teclado selecciona: con clic o toque ya lo hace
                 // onClick, y seleccionar aquí haría que ese clic la deseleccionara.
                 if (e.currentTarget.matches(":focus-visible")) {
-                  setSelected(region.id);
+                  (onSelect ?? setOwnSelected)(region.id);
                 }
               }}
               onKeyDown={(e) => {

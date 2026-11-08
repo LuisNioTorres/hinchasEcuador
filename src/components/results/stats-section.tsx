@@ -209,11 +209,14 @@ export function StatsSection() {
           {view === "nacional" ? (
             <NationalView onOpenProvince={openProvince} />
           ) : (
-            <ProvincialView
-              provinceId={provinceId}
-              onSelect={setProvinceId}
-              cantonMaps={cantonMaps}
-            />
+            <>
+              <ProvincialView
+                provinceId={provinceId}
+                onSelect={setProvinceId}
+                cantonMaps={cantonMaps}
+              />
+              <InternationalResults />
+            </>
           )}
         </div>
       </div>

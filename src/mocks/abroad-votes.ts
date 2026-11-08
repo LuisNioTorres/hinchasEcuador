@@ -61,11 +61,23 @@ const VOTES_BY_CONTINENT = new Map(
   }),
 );
 
-/** Ranking de cada continente, igual que vista_ranking_continental. */
+/** Continentes del mapa: América reúne las dos Américas del catálogo. */
+const MAP_CONTINENTS: Readonly<Record<string, readonly string[]>> = {
+  america: ["america-del-norte", "america-del-sur"],
+  europa: ["europa"],
+  asia: ["asia"],
+  africa: ["africa"],
+  oceania: ["oceania"],
+};
+
+/** Ranking de cada continente del mapa, a partir de los votos por continente. */
 export const CONTINENT_RANKINGS: ReadonlyMap<string, Ranking> = new Map(
-  CONTINENTS.map((c) => [
-    c.id,
-    buildRanking(VOTES_BY_CONTINENT.get(c.id) ?? new Map(), nameOfClub),
+  Object.entries(MAP_CONTINENTS).map(([id, parts]) => [
+    id,
+    buildRanking(
+      sumVotes(parts.map((p) => VOTES_BY_CONTINENT.get(p) ?? new Map())),
+      nameOfClub,
+    ),
   ]),
 );
 

@@ -8,6 +8,8 @@ import {
 } from "@/lib/results/rankings";
 import { clubOf } from "@/mocks/catalog-lookup";
 
+const LONG_WORD = 11;
+
 /**
  * Top 5 de un ámbito: el líder en una tarjeta destacada con el color del club, y
  * del 2.º al 5.º en filas con una barra proporcional al líder.
@@ -23,11 +25,15 @@ export function TopFive({
   if (!leader) return null;
   const leaderClub = clubOf(leader.clubId);
   const max = leader.percentage || 1;
+  // Una palabra muy larga no cabe junto al porcentaje ni partiendo el nombre en líneas.
+  const hasLongWord = leaderClub.name
+    .split(" ")
+    .some((word) => word.length >= LONG_WORD);
 
   return (
     <section aria-label={title} className="flex flex-col gap-3">
       <article
-        className="relative overflow-hidden rounded-[1.75rem] p-5 shadow-[0_1.25rem_2.5rem_rgba(15,30,60,0.18)] ring-1 ring-black/5 sm:p-6 lg:p-7"
+        className="@container relative overflow-hidden rounded-[1.75rem] p-5 shadow-[0_1.25rem_2.5rem_rgba(15,30,60,0.18)] ring-1 ring-black/5 sm:p-6 lg:p-7"
         style={{
           backgroundColor: leaderClub.color,
           color: inkOn(leaderClub.color),
@@ -48,11 +54,13 @@ export function TopFive({
               <Crown aria-hidden="true" className="size-3.5" />
               1.º · Líder
             </p>
-            <p className="mt-1 text-xl leading-tight font-bold sm:text-2xl lg:text-[1.75rem]">
+            <p className="mt-1 text-xl leading-tight font-bold wrap-anywhere sm:text-2xl lg:text-[1.75rem]">
               {leaderClub.name}
             </p>
-            {/* En teléfono, el porcentaje va debajo del nombre para que este no se parta. */}
-            <p className="mt-1 text-sm font-semibold tabular-nums sm:hidden">
+            {/* En tarjetas angostas, el porcentaje va debajo del nombre para que no se monten. */}
+            <p
+              className={`mt-1 text-sm font-semibold tabular-nums ${hasLongWord ? "" : "@min-[30rem]:hidden"}`}
+            >
               {formatPercentage(leader.percentage)}
               <span className="font-medium opacity-80">
                 {" "}
@@ -60,7 +68,9 @@ export function TopFive({
               </span>
             </p>
           </div>
-          <div className="text-right max-sm:hidden">
+          <div
+            className={`shrink-0 text-right ${hasLongWord ? "hidden" : "hidden @min-[30rem]:block"}`}
+          >
             <p className="text-2xl leading-none font-bold tabular-nums sm:text-3xl lg:text-4xl">
               {formatPercentage(leader.percentage)}
             </p>
@@ -84,8 +94,10 @@ export function TopFive({
               </span>
               <ClubBadge club={club} className="size-9 lg:size-11" />
               <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-2">
-                  <p className="truncate text-sm font-bold">{club.name}</p>
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="min-w-0 truncate text-sm font-bold">
+                    {club.name}
+                  </p>
                   <p className="shrink-0 text-sm font-bold tabular-nums">
                     {formatPercentage(entry.percentage)}
                   </p>
