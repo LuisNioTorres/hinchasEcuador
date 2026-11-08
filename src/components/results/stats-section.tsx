@@ -90,10 +90,11 @@ const GalapagosInset = (
 /**
  * Marco del mapa (el mapa nacional mide 565x643; la ficha ocupa la franja inferior).
  * En lg+ tiene un alto fijo, parecido al del Top 5 de al lado, para que las dos
- * columnas queden equilibradas.
+ * columnas queden equilibradas. Cuando va en una sola columna (teléfonos grandes y
+ * tablet vertical), se limita su ancho para que no llene la pantalla.
  */
 const MAP_FRAME =
-  "aspect-[565/740] w-full lg:aspect-auto lg:h-[clamp(30rem,36vw,38rem)]";
+  "aspect-[565/740] w-full max-[48rem]:mx-auto max-[48rem]:max-w-[30rem] tablet:portrait:mx-auto tablet:portrait:max-w-[30rem] lg:aspect-auto lg:h-[clamp(30rem,36vw,38rem)]";
 
 /**
  * Segunda sección: estadísticas de popularidad con dos vistas.
@@ -149,7 +150,7 @@ export function StatsSection() {
       className="scroll-mt-(--header-h) bg-bone px-(--page-x) py-14 font-montserrat text-black tablet:py-16 lg:px-[6vw] lg:py-20"
     >
       <div className="mx-auto max-w-[82rem]">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-5 min-[43rem]:flex-row min-[43rem]:items-end min-[43rem]:justify-between">
           <div>
             <h2
               id={`${id}-titulo`}
@@ -166,7 +167,7 @@ export function StatsSection() {
           <div
             role="tablist"
             aria-label="Ámbito de las estadísticas"
-            className="flex w-full shrink-0 rounded-full border border-black/10 bg-white p-1 shadow-[0_1px_2px_rgba(0,0,0,0.05)] sm:w-auto"
+            className="flex w-full shrink-0 rounded-full border border-black/10 bg-white p-1 shadow-[0_1px_2px_rgba(0,0,0,0.05)] min-[43rem]:w-auto"
           >
             {tabs.map((tab) => {
               const selected = view === tab.key;
@@ -181,7 +182,7 @@ export function StatsSection() {
                   tabIndex={selected ? 0 : -1}
                   onClick={() => setView(tab.key)}
                   onKeyDown={onTabKey}
-                  className={`h-11 flex-1 cursor-pointer rounded-full px-6 text-sm font-bold tracking-wider uppercase transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-results-blue max-[22rem]:px-2 sm:flex-none sm:px-8 ${
+                  className={`h-11 flex-1 cursor-pointer rounded-full px-6 text-sm font-bold tracking-wider uppercase transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-results-blue max-[22rem]:px-2 sm:px-8 min-[43rem]:flex-none ${
                     selected
                       ? "bg-brand-blue text-white shadow-[0_0.375rem_1rem_rgba(21,78,142,0.3)]"
                       : "text-black/60 hover:text-black"
