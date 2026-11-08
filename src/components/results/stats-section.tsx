@@ -20,6 +20,11 @@ import {
   type MapRegion,
 } from "@/components/results/choropleth-map";
 import type { ProvinceCantonMap } from "@/components/results/canton-map-data";
+import {
+  GeneralRanking,
+  InternationalResults,
+} from "@/components/results/international-results";
+import { PanelTitle, TWO_COLUMNS } from "@/components/results/panel-layout";
 import { RankingTable } from "@/components/results/ranking-table";
 import { TopFive } from "@/components/results/top-five";
 import { Combobox, type ComboboxOption } from "@/components/vote/combobox";
@@ -258,12 +263,9 @@ function NationalView({
           </div>
         </div>
       </div>
+      <InternationalResults />
       <div className="mt-10">
-        <RankingTable
-          ranking={NATIONAL_RANKING}
-          title="Clasificación nacional"
-          description="Todos los equipos con votos en el Ecuador, de más a menos votado."
-        />
+        <GeneralRanking national={NATIONAL_RANKING} />
       </div>
     </>
   );
@@ -424,17 +426,5 @@ function ProvincialView({
         </>
       )}
     </>
-  );
-}
-
-const TWO_COLUMNS =
-  "grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] lg:gap-[clamp(2rem,4vw,4.5rem)] tablet:landscape:grid-cols-2 tablet:landscape:gap-6";
-
-function PanelTitle({ title, subtitle }: { title: string; subtitle: string }) {
-  return (
-    <div className="mb-4">
-      <h3 className="text-lg font-bold tracking-tight sm:text-xl">{title}</h3>
-      <p className="mt-1 text-sm text-black/55">{subtitle}</p>
-    </div>
   );
 }

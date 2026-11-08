@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useState, type ReactNode } from "react";
 import { ChevronDown, Search, X } from "lucide-react";
 import { ClubBadge } from "@/components/vote/club-badge";
 import {
@@ -22,10 +22,13 @@ export function RankingTable({
   ranking,
   title,
   description,
+  toolbar,
 }: {
   ranking: Ranking;
   title: string;
   description: string;
+  /** Controles opcionales sobre el título (p. ej., cambiar de ámbito). */
+  toolbar?: ReactNode;
 }) {
   const id = useId();
   const [query, setQuery] = useState("");
@@ -54,6 +57,7 @@ export function RankingTable({
       aria-labelledby={`${id}-titulo`}
       className="rounded-[1.75rem] border border-black/6 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-6 lg:p-8"
     >
+      {toolbar}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h3
