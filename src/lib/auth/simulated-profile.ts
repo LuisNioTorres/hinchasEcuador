@@ -1,4 +1,5 @@
 import { useMemo, useSyncExternalStore } from "react";
+import { clearSessionStatus } from "@/lib/auth/simulated-session";
 import { forgetEmail } from "@/lib/auth/simulation";
 
 /**
@@ -46,6 +47,7 @@ export function saveEditedName(name: ProfileName) {
 /** Olvida lo que esta pestaña recuerda de la cuenta. */
 export function clearSimulatedSession() {
   forgetEmail();
+  clearSessionStatus();
   try {
     sessionStorage.removeItem(NAME_KEY);
     window.dispatchEvent(new Event(CHANGE_EVENT));

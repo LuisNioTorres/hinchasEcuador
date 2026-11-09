@@ -1,10 +1,7 @@
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ownerAssets } from "@/config/owner-assets";
+import { VoteLink } from "@/components/layout/vote-link";
 import { OwnerImage } from "@/components/ui/owner-image";
-
-/** Ruta del inicio de sesión, a la que dirige VOTAR. */
-export const VOTE_ROUTE = "/votar";
 
 /**
  * Header fijo de la Página Principal, con el mismo estilo que el del login: barra
@@ -43,16 +40,13 @@ export function SiteHeader() {
           <p className="text-sm leading-none font-semibold whitespace-nowrap text-black/70 wide:max-sm:hidden tablet:max-sm:hidden">
             ¿Deseas votar?
           </p>
-          <Link
-            href={VOTE_ROUTE}
-            className="group relative inline-flex h-10 items-center justify-center gap-2 rounded-full bg-brand-blue px-5 text-sm leading-none font-semibold tracking-wider text-white shadow-[0_0.5rem_1.25rem_rgba(21,78,142,0.28)] transition-[background-color,scale] after:absolute after:inset-x-0 after:-inset-y-1 hover:bg-[#0f3f75] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-results-blue active:scale-95 motion-reduce:active:scale-100 phone:h-11 phone:after:hidden wide:h-9 wide:px-4"
-          >
+          <VoteLink className="group relative inline-flex h-10 items-center justify-center gap-2 rounded-full bg-brand-blue px-5 text-sm leading-none font-semibold tracking-wider text-white shadow-[0_0.5rem_1.25rem_rgba(21,78,142,0.28)] transition-[background-color,scale] after:absolute after:inset-x-0 after:-inset-y-1 hover:bg-[#0f3f75] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-results-blue active:scale-95 motion-reduce:active:scale-100 phone:h-11 phone:after:hidden wide:h-9 wide:px-4">
             VOTAR
             <ArrowRight
               aria-hidden="true"
               className="size-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
             />
-          </Link>
+          </VoteLink>
         </div>
       </div>
     </header>

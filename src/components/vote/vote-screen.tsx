@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  useEffect,
   useId,
   useMemo,
   useState,
@@ -30,6 +31,7 @@ import { ClubBadge } from "@/components/vote/club-badge";
 import { Combobox, type ComboboxOption } from "@/components/vote/combobox";
 import { FanCard, type Scope } from "@/components/vote/fan-card";
 import { VoteBackdrop } from "@/components/vote/vote-backdrop";
+import { markSignedIn, markVoted } from "@/lib/auth/simulated-session";
 import { SIMULATED_DELAY_MS, wait } from "@/lib/auth/simulation";
 import { CANTONS, CLUBS, CONTINENTS, PROVINCES } from "@/mocks/catalogs";
 import { POPULAR_CLUB_IDS } from "@/mocks/popular-clubs";
@@ -90,6 +92,8 @@ export function VoteScreen() {
     "editing",
   );
 
+  useEffect(markSignedIn, []);
+
   const ids = {
     province: `${id}-provincia`,
     canton: `${id}-canton`,
@@ -145,6 +149,7 @@ export function VoteScreen() {
     }
     setStatus("sending");
     await wait(SIMULATED_DELAY_MS * 1.5);
+    markVoted();
     setStatus("sent");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };

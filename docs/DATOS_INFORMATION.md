@@ -53,6 +53,8 @@
   3. El usuario pulsa el enlace o escribe el código en la plataforma. El código evita los fallos típicos del enlace: correos como Hotmail u Outlook que revisan los enlaces y pueden gastarlos antes que el usuario, abrir el correo en otro dispositivo o dentro de la app de correo.
   4. Una vez verificado, puede ingresar a la plataforma y utilizarla normalmente.
 - **Sesión Persistente:** La sesión queda guardada en el dispositivo y el usuario no tiene que volver a entrar. Solo repite el acceso desde otro dispositivo, si borra los datos del navegador o si cierra sesión. En ese caso entra a su misma cuenta, sin registrarse de nuevo.
+- **Destino del Botón VOTAR (decisión del dueño, 2026-11-09):** sin sesión, lleva al login; con sesión y sin voto, al formulario de voto; si ya votó, a la página de resultados.
+- **Cuentas sin Voto (decisión del dueño, 2026-11-09):** quien se registra y no vota conserva su cuenta indefinidamente, sin borrado automático, y puede votar cuando vuelva. No cuenta en las estadísticas ni tiene ID DEL HINCHA hasta votar.
 - **Datos Mínimos:** Únicamente se requiere el correo electrónico y el nombre/apellido básico al momento de autenticarse. No se solicitan datos innecesarios (sin cédula, sin teléfono, sin dirección).
 - **Flujo en Dos Pasos:**
   1. El usuario hace clic en **VOTAR** y se autentica de forma transparente.

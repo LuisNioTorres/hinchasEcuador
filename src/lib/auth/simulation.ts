@@ -16,6 +16,7 @@ export const AUTH_ROUTES = {
   name: "/votar/tu-nombre",
   emailPreview: "/votar/vista-correo",
   loggedIn: "/cuenta",
+  results: "/resultados",
 } as const;
 
 /** Igual que `otp_length` y `otp_expiry` de supabase/config.toml. */
