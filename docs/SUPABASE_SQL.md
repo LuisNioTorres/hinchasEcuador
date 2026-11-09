@@ -124,8 +124,9 @@ Probada en Docker local el 2026-11-09, sin tocar el proyecto real: 77 de 77 prue
 
 - [x] Migración `20261109120000_perfil_editable_numero_voto.sql` probada en local
 - [x] Bloqueo del cambio de correo (riesgo de la fase Login)
-- [ ] Migración aplicada en el proyecto real
-- [ ] `SUPABASE_SECRET_KEY` en `.env.local` y en Vercel
+- [x] Migración aplicada en el proyecto real (2026-11-09; el asesor avisa que `mi_voto` es ejecutable por usuarios con sesión, y es intencional)
+- [x] `SUPABASE_SECRET_KEY` en `.env.local`
+- [ ] `SUPABASE_SECRET_KEY` en Vercel
 - [ ] Plantilla `supabase/templates/acceso.html` en el panel (Magic Link y Confirm signup)
 - [ ] URLs del sitio y de redirección en el panel
 - [ ] Google activado y probado de punta a punta
