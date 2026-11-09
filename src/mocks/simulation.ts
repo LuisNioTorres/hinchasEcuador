@@ -4,7 +4,6 @@
  * Solo la usan las rutas /simulacion/*, que no existen en producción. No se mezcla
  * con los demás datos de la página ni toca la base de datos.
  */
-import type { ResultsData } from "@/components/results/results-data";
 import { inkOn } from "@/lib/color";
 import { buildRanking, type Ranking } from "@/lib/results/rankings";
 import {
@@ -13,7 +12,7 @@ import {
 } from "@/lib/results/province-leaders";
 import { clubOf } from "@/mocks/catalog-lookup";
 import { CANTONS, CLUBS, PROVINCES } from "@/mocks/catalogs";
-import type { NationalResultsResponse } from "@/mocks/national-results";
+import type { NationalResultsResponse, ResultsData } from "@/lib/results/types";
 
 type Vote =
   | { readonly club: string; readonly province: string }

@@ -33,7 +33,6 @@ import { VoteBackdrop } from "@/components/vote/vote-backdrop";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { registerVote } from "@/lib/vote/actions";
 import { CANTONS, CLUBS, CONTINENTS, PROVINCES } from "@/mocks/catalogs";
-import { POPULAR_CLUB_IDS } from "@/mocks/popular-clubs";
 
 const byName = <T extends { name: string }>(a: T, b: T) =>
   a.name.localeCompare(b.name, "es");
@@ -48,12 +47,6 @@ const CLUB_OPTIONS: ComboboxOption[] = [...CLUBS].sort(byName).map((club) => ({
   hint: club.officialName,
   leading: <ClubBadge club={club} className="size-7" />,
 }));
-
-const POPULAR_CLUBS = POPULAR_CLUB_IDS.map((id) => {
-  const club = CLUBS.find((c) => c.id === id);
-  if (!club) throw new Error(`Club popular desconocido: ${id}`);
-  return club;
-});
 
 type Field = "province" | "canton" | "continent" | "club";
 type Errors = Partial<Record<Field, string>>;
@@ -78,8 +71,19 @@ const STACK_ONLY = "lg:hidden tablet:landscape:hidden";
  * - teléfono, tablet en vertical y teléfono girado: una columna. La tarjeta aparece
  *   al final, como repaso justo antes de enviar.
  */
-export function VoteScreen() {
+export function VoteScreen({
+  popularClubIds,
+}: {
+  popularClubIds: readonly string[];
+}) {
   const id = useId();
+  const popularClubs = useMemo(
+    () =>
+      CLUBS.filter((c) => popularClubIds.includes(c.id)).sort(
+        (a, b) => popularClubIds.indexOf(a.id) - popularClubIds.indexOf(b.id),
+      ),
+    [popularClubIds],
+  );
   const [scope, setScope] = useState<Scope>("nacional");
   const [provinceId, setProvinceId] = useState<string | null>(null);
   const [cantonId, setCantonId] = useState<string | null>(null);
@@ -345,7 +349,7 @@ export function VoteScreen() {
                   Los más elegidos
                 </p>
                 <div className="mt-2 grid grid-cols-2 gap-2 max-[21.25rem]:grid-cols-1">
-                  {POPULAR_CLUBS.map((c) => (
+                  {popularClubs.map((c) => (
                     <ChoiceCard
                       key={c.id}
                       name={`${id}-equipo-opcion`}

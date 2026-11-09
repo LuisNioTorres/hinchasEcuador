@@ -3,7 +3,7 @@ import { EcuadorMap } from "@/components/home/results/ecuador-map";
 import { TopFiveList } from "@/components/home/results/top-five-list";
 import { ResultsState } from "@/components/home/results/results-state";
 import type { ProvinceLeaders } from "@/lib/results/province-leaders";
-import type { NationalResultsResponse } from "@/mocks/national-results";
+import type { NationalResultsResponse } from "@/lib/results/types";
 
 interface ResultsSectionProps {
   results: NationalResultsResponse;

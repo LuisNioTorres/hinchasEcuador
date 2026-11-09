@@ -2,7 +2,7 @@ import {
   TOP_FIVE_GAP,
   TOP_FIVE_PLACEHOLDER_ROW,
 } from "@/components/home/results/top-five-list";
-import type { ResultsStatus } from "@/mocks/national-results";
+import type { ResultsStatus } from "@/lib/results/types";
 
 interface ResultsStateProps {
   status: Exclude<ResultsStatus, "ok">;

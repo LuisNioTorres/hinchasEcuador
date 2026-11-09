@@ -50,6 +50,8 @@ Confirmado en el proyecto real el 2026-11-06: PostgreSQL 17.11, Data API respond
 | 13 | Clubes | Cualquier persona puede votar por cualquier club. La provincia del club no tiene ningún efecto en el sistema. |
 | 14 | Perfil (2026-11-09) | Reemplaza lo dicho sobre el bloqueo del perfil en las decisiones 1 y 12: el usuario puede cambiar su nombre y apellido siempre, también después de votar. El voto sigue bloqueado. **Pendiente:** migración que ajuste la política y el trigger de `profiles`, que hoy bloquean el perfil al votar. |
 | 15 | Migración del perfil (2026-11-09) | El dueño la aprobó y delegó el momento: se hará una sola, al conectar la autenticación real, y se probará antes en local. Incluirá: edición del nombre siempre (decisión 14), `nombre_completo` separado en `nombre` y `apellido`, y el número de voto. |
+| 17 | Clubes sin votos (2026-11-09) | No aparecen en rankings ni clasificaciones: las vistas solo entregan clubes con al menos un voto. |
+| 18 | Total Internacional (2026-11-09) | Es la suma por club de `vista_ranking_continental`, calculada en la aplicación. No hay sexta vista. |
 | 16 | ID DEL HINCHA (2026-11-09) | Es el número de orden del voto en el censo y lo asigna la base de datos al registrar el voto. No se puede editar. El identificador interno de la cuenta (UUID) sigue existiendo, pero no se muestra. |
 
 ## Riesgos abiertos de la auditoría (2026-11-06)
@@ -91,11 +93,12 @@ Fuentes de la carga: lista de INEC de 2012 publicada en una capa cartográfica q
 
 ### Fase 3: Resultados
 
-Pospuesta por el dueño el 2026-11-06: las vistas se verán más adelante. Sigue por decidir si los clubes con 0 votos aparecen en los rankings.
+Probada en Docker local el 2026-11-09 con `supabase/tests/resultados.mjs` (38 de 38). Las vistas se ejecutan con los permisos de su dueño para contar `votos` sin abrirla: es la excepción esperada ante el asesor de Supabase.
 
-- [ ] Las 5 vistas de rankings
-- [ ] Desempate alfabético y porcentajes correctos
-- [ ] Las vistas no revelan datos de los votantes
+- [x] Las 5 vistas de rankings (`20261109130000_vistas_rankings.sql`), probadas en local
+- [x] Vistas aplicadas en el proyecto real (2026-11-09; el asesor marca las 5 como `security_definer_view`, excepción intencional ya documentada)
+- [x] Desempate alfabético y porcentajes correctos
+- [x] Las vistas no revelan datos de los votantes
 
 ### Fase 4: Pruebas
 Ejecutadas en Docker local el 2026-11-07, sin tocar el proyecto real: 65 de 65 pruebas correctas. Se repiten con `supabase/tests/fase4.mjs`; las instrucciones están al inicio del archivo.

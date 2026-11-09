@@ -4,20 +4,18 @@ import { SectionDivider } from "@/components/layout/section-divider";
 import { HeroSection } from "@/components/home/hero-section";
 import { ResultsSection } from "@/components/home/results-section";
 import { AboutSection } from "@/components/home/about-section";
-import { mockNationalResults } from "@/mocks/national-results";
-import { mockProvinceLeaders } from "@/mocks/provincial-results";
+import { getHomeResults } from "@/lib/results/load";
 
-export default function Home() {
+export default async function Home() {
+  const { results, provinceLeaders } = await getHomeResults();
+
   return (
     <>
       <SiteHeader />
       <main>
         <HeroSection />
         <SectionDivider />
-        <ResultsSection
-          results={mockNationalResults}
-          provinceLeaders={mockProvinceLeaders}
-        />
+        <ResultsSection results={results} provinceLeaders={provinceLeaders} />
         <SectionDivider />
         <AboutSection />
       </main>

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { SelectableClubRow } from "@/components/home/results/club-selection";
-import type { ClubResult } from "@/mocks/national-results";
+import type { ClubResult } from "@/lib/results/types";
 
 interface TopFiveListProps {
   clubs: readonly ClubResult[];

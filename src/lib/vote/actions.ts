@@ -1,5 +1,7 @@
 "use server";
 
+import { updateTag } from "next/cache";
+import { RESULTS_CACHE_TAG } from "@/lib/results/tag";
 import { CANTONS, CLUBS, CONTINENTS, PROVINCES } from "@/mocks/catalogs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -82,6 +84,9 @@ export async function registerVote(input: VoteInput): Promise<VoteResult> {
     .from("votos")
     .insert({ usuario_id: user.id, club_id: clubRow.data.id, ...location });
 
-  if (!error) return "ok";
+  if (!error) {
+    updateTag(RESULTS_CACHE_TAG);
+    return "ok";
+  }
   return error.code === "23505" ? "ya-voto" : "error";
 }
