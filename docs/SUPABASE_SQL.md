@@ -48,6 +48,9 @@ Confirmado en el proyecto real el 2026-11-06: PostgreSQL 17.11, Data API respond
 | 11 | Pruebas | Las pruebas de seguridad se hacen en Docker Desktop local, sin tocar el proyecto real ni dejar votos de prueba. El dueño pidió crear primero las tablas; Docker se necesita antes de las pruebas de la Fase 4. |
 | 12 | Reglas de la Fase 2 | Aprobadas el 2026-11-06: bloqueo real del voto, perfil bloqueado al votar, `ha_votado` automático, perfil automático, correo verificado para votar, cantón de la provincia elegida, y cuenta con voto imposible de borrar. |
 | 13 | Clubes | Cualquier persona puede votar por cualquier club. La provincia del club no tiene ningún efecto en el sistema. |
+| 14 | Perfil (2026-11-09) | Reemplaza lo dicho sobre el bloqueo del perfil en las decisiones 1 y 12: el usuario puede cambiar su nombre y apellido siempre, también después de votar. El voto sigue bloqueado. **Pendiente:** migración que ajuste la política y el trigger de `profiles`, que hoy bloquean el perfil al votar. |
+| 15 | Migración del perfil (2026-11-09) | El dueño la aprobó y delegó el momento: se hará una sola, al conectar la autenticación real, y se probará antes en local. Incluirá: edición del nombre siempre (decisión 14), `nombre_completo` separado en `nombre` y `apellido`, y el número de voto. |
+| 16 | ID DEL HINCHA (2026-11-09) | Es el número de orden del voto en el censo y lo asigna la base de datos al registrar el voto. No se puede editar. El identificador interno de la cuenta (UUID) sigue existiendo, pero no se muestra. |
 
 ## Riesgos abiertos de la auditoría (2026-11-06)
 

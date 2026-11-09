@@ -58,7 +58,16 @@
   1. El usuario hace clic en **VOTAR** y se autentica de forma transparente.
   2. Al ingresar, accede al formulario express donde selecciona su **Ubicación** (Provincia y Cantón para Ecuador, o Continente para internacional) y su **Equipo de Fútbol**.
 - **Procesamiento Inmediato:** Al hacer clic en el botón "Enviar Voto", el voto se registra y se suma **de inmediato** a las estadísticas generales sin pasos intermedios.
-- **Inmutabilidad Absoluta (Bloqueo Total):** Una vez emitido el voto, **NO se podrá modificar ni editar ningún dato** (ni el equipo seleccionado, ni la provincia, cantón o continente). El perfil queda bloqueado para garantizar la integridad del censo.
+- **Inmutabilidad Absoluta (Bloqueo Total):** Una vez emitido el voto, **NO se podrá modificar ni editar ningún dato** (ni el equipo seleccionado, ni la provincia, cantón o continente). La única excepción son el nombre y el apellido, que no forman parte del voto.
+- **Reglas Permanentes del Perfil y la Sesión (decisión del dueño, 2026-11-09):**
+  1. El nombre y el apellido son editables tantas veces como el usuario quiera, antes o después de votar.
+  2. El ID DEL HINCHA es único y no editable: es el número de su voto en el censo (quien emitió el voto 10 tiene el ID 10) y se muestra como "Tú fuiste el voto número 10". Se asigna al votar. El voto se vincula siempre a la cuenta del usuario, nunca al nombre o apellido.
+  3. El voto es único, permanente y no editable.
+  4. Modificar el nombre o el apellido nunca afecta el voto ni genera uno nuevo.
+  5. El usuario puede cerrar sesión cuando quiera.
+  6. Al cerrar sesión, se elimina el acceso de la cuenta en ese dispositivo y el usuario regresa a la pantalla de login existente.
+  7. Diferentes personas pueden usar el mismo dispositivo, cada una con su propia cuenta.
+  8. Quien vive en el exterior ve solo su continente, en lugar de provincia y país.
 - **Cuenta sin Borrado por el Usuario:** La plataforma no ofrece la opción de borrar la cuenta y la base de datos rechaza borrar una cuenta que ya tenga un voto. Cualquier solicitud legal de eliminación de datos se atiende de forma manual y su procedimiento se revisará con un abogado antes del lanzamiento.
 
 ---
@@ -69,7 +78,7 @@
 | :--- | :--- | :--- | :--- |
 | `id` | `UUID` | `PRIMARY KEY`, `REFERENCES auth.users(id) ON DELETE CASCADE` | Identificador vinculado a la cuenta de autenticación de Supabase. El perfil se crea automáticamente con la cuenta y se borra con ella si no ha votado. |
 | `email` | `VARCHAR(255)` | `UNIQUE`, `NOT NULL` | Correo electrónico verificado por la plataforma. |
-| `nombre_completo`| `VARCHAR(150)` | `NULLABLE` | Nombre y apellido del usuario proporcionados en el registro/OAuth. |
+| `nombre_completo`| `VARCHAR(150)` | `NULLABLE` | Nombre y apellido del usuario proporcionados en el registro/OAuth. **Pendiente (decisión del 2026-11-09):** se separará en `nombre` y `apellido` con la misma migración que libera su edición. |
 | `ha_votado` | `BOOLEAN` | `DEFAULT false` | Bandera de control para saber si ya completó su proceso de votación. Solo la cambia el sistema, nunca el usuario. |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT now()` | Fecha y hora de creación del usuario. |
 
@@ -165,7 +174,7 @@ Para garantizar consultas ultrarrápidas y sin sobrecargar la base de datos, las
 - **Acceso Público de Lectura:** Las tablas de catálogos (`continentes`, `provincias`, `cantones`, `clubes`) y las vistas de estadísticas/rankings tienen permisos de lectura pública (`SELECT`) para cualquier usuario, esté autenticado o no.
 - **Privacidad y Control de Usuarios:** 
   - Un usuario autenticado solo puede leer su propio registro en la tabla de perfiles (`auth.uid() = id`).
-  - Antes de votar, solo puede modificar su `nombre_completo`. Una vez emitido el voto, el perfil queda bloqueado para siempre. Nunca puede cambiar su `email` ni `ha_votado` desde el perfil.
+  - Solo puede modificar su `nombre_completo`, antes o después de votar (decisión del 2026-11-09; ver Módulo 3). Nunca puede cambiar su `id`, su `email` ni `ha_votado` desde el perfil. **Pendiente:** la base de datos todavía bloquea el perfil al votar; hace falta una migración para aplicar esta regla.
 - **Inmutabilidad Absoluta del Voto:**
   - **INSERT:** Prohibido directamente para los roles de usuario público (`authenticated` y `anon`). El servidor de la plataforma registra el voto después de validar la sesión y la protección contra bots, con credenciales que nunca salen del servidor. Solo se acepta un voto por usuario, garantizado por `UNIQUE(usuario_id)`.
   - **SELECT:** Prohibido sobre filas individuales de `votos` para los roles de usuario público. Los resultados se consultan mediante las vistas de totales.

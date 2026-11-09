@@ -50,5 +50,13 @@ export function recallEmail(): string | null {
   }
 }
 
+export function forgetEmail() {
+  try {
+    sessionStorage.removeItem(EMAIL_KEY);
+  } catch {
+    // Sin almacenamiento: no hay nada que olvidar.
+  }
+}
+
 export const wait = (ms: number) =>
   new Promise<void>((done) => setTimeout(done, ms));

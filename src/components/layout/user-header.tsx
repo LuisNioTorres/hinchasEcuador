@@ -1,20 +1,15 @@
 import Link from "next/link";
 import { ownerAssets } from "@/config/owner-assets";
+import { UserChip } from "@/components/layout/user-chip";
 import { OwnerImage } from "@/components/ui/owner-image";
-
-function initialsOf(fullName: string) {
-  const parts = fullName.trim().split(/\s+/);
-  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
-}
 
 /**
  * Header del usuario logueado. Mismo estilo que el de la página principal
  * (src/components/layout/site-header.tsx): barra blanca translúcida con
  * desenfoque, logo y eslogan a la izquierda. A la derecha, el nombre del usuario en
- * lugar de VOTAR; en teléfono, solo su nombre de pila para que quepa.
+ * lugar de VOTAR, que lleva a su información.
  */
 export function UserHeader({ fullName }: { fullName: string }) {
-  const firstName = fullName.trim().split(/\s+/)[0] ?? fullName;
   return (
     <header className="sticky top-0 z-50 h-(--header-h) border-b border-black/5 pt-[env(safe-area-inset-top)] font-montserrat text-black before:absolute before:inset-0 before:-z-10 before:bg-white/75 before:backdrop-blur-md lg:pt-0">
       <div className="flex h-full items-center justify-between gap-3 px-(--page-x) lg:px-[max(2.5rem,4vw)]">
@@ -34,25 +29,7 @@ export function UserHeader({ fullName }: { fullName: string }) {
           </span>
         </Link>
 
-        <div className="flex shrink-0 items-center gap-2.5 rounded-full border border-black/10 bg-white/80 py-1 pr-1 pl-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] max-sm:pl-1 wide:py-0.5">
-          <span className="text-sm leading-none font-semibold whitespace-nowrap text-black/80 max-sm:hidden">
-            {fullName}
-          </span>
-          <span className="sr-only sm:hidden">{fullName}</span>
-          <span
-            aria-hidden="true"
-            title={fullName}
-            className="flex size-8 items-center justify-center rounded-full bg-brand-blue text-xs font-bold tracking-wide text-white"
-          >
-            {initialsOf(fullName)}
-          </span>
-          <span
-            aria-hidden="true"
-            className="pr-2 text-sm leading-none font-semibold text-black/80 sm:hidden"
-          >
-            {firstName}
-          </span>
-        </div>
+        <UserChip fullName={fullName} />
       </div>
     </header>
   );
