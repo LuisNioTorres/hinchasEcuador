@@ -153,7 +153,7 @@ export function homeDataFor(scenario: Scenario): {
     results: {
       status: "ok",
       data: {
-        totalFans: national.length,
+        totalFans: scenario.votes.length,
         top: ranking.entries.slice(0, 5).map((entry) => {
           const club = clubOf(entry.clubId);
           return {

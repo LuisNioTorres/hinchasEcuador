@@ -138,6 +138,7 @@
 - **Acceso Público:** Los resultados, rankings y mapas son de acceso libre y público. No requieren inicio de sesión para ser consultados.
 - **Transparencia y Porcentajes:** Los porcentajes mostrados en la interfaz se calculan dinámicamente sobre el total de votos válidos del ámbito territorial consultado:
   $$\text{Porcentaje} = \left( \frac{\text{Votos del Club en Ámbito}}{\text{Total Votos del Ámbito}} \right) \times 100$$
+- **Contador de Hinchas Censados (decisión del dueño, 2026-11-09):** Cuenta todos los votos, de Ecuador y del exterior. Los rankings y porcentajes nacionales siguen contando solo los votos con provincia.
 - **Criterio Estricto de Desempate:** En caso de empate exacto en cantidad o porcentaje de votos entre dos o más clubes, el orden de despliegue en las tablas de resultados se resolverá **alfabéticamente por el `nombre_popular` del club**.
 - **Lógica de Coloreado del Mapa Interactivo (Ecuador):**
   - Cada provincia del mapa SVG se pintará dinámicamente con el `color_hex` del club que ocupe el **1.er lugar (líder)** en cantidad de votos en dicha provincia.

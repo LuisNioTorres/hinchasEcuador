@@ -2,6 +2,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import {
   buildHomeResults,
   buildProvinceLeaders,
+  totalAbroad,
   type CantonalRow,
   type ContinentalRow,
   type LeaderRow,
@@ -75,8 +76,13 @@ export async function getHomeResults(): Promise<{
   cacheLife("minutes");
 
   try {
-    const [national, leaders] = await Promise.all([
+    const [national, continental, leaders] = await Promise.all([
       readNational(),
+      readAll<ContinentalRow>(
+        "vista_ranking_continental",
+        "continente, slug, total_votos",
+        ["continente", "slug"],
+      ),
       readAll<LeaderRow>(
         "vista_lideres_provinciales",
         "codigo_iso, slug, nombre_popular, color_hex, porcentaje_dominio",
@@ -84,7 +90,10 @@ export async function getHomeResults(): Promise<{
       ),
     ]);
     return {
-      results: { status: "ok", data: buildHomeResults(national) },
+      results: {
+        status: "ok",
+        data: buildHomeResults(national, totalAbroad(continental)),
+      },
       provinceLeaders: buildProvinceLeaders(leaders),
     };
   } catch {

@@ -36,7 +36,9 @@ async function Results() {
     <main>
       <ResultsHero
         podium={data.nationalRanking.entries.slice(0, 3)}
-        totalVotes={data.nationalRanking.total}
+        totalVotes={
+          data.nationalRanking.total + data.internationalRanking.total
+        }
         clubsWithVotes={data.nationalRanking.entries.length}
         provinceColors={provinceColors}
       />

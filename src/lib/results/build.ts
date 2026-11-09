@@ -114,13 +114,22 @@ export function buildResultsData(rows: ResultRows): ResultsData {
   };
 }
 
-/** El contador y el TOP 5 de la página principal. */
+/** Votos del exterior: la suma de los continentes. */
+export function totalAbroad(continental: readonly NationalRow[]) {
+  return continental.reduce((sum, row) => sum + row.total_votos, 0);
+}
+
+/**
+ * El contador y el TOP 5 de la página principal. El contador incluye a quienes viven
+ * en el exterior; el TOP 5 y sus porcentajes son solo de Ecuador.
+ */
 export function buildHomeResults(
   national: readonly NationalRow[],
+  votesAbroad: number,
 ): NationalResults {
   const ranking = rankingFrom(national);
   return {
-    totalFans: ranking.total,
+    totalFans: ranking.total + votesAbroad,
     top: ranking.entries.slice(0, 5).map((entry) => {
       const club = clubOf(entry.clubId);
       return {
