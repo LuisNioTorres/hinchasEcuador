@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  useEffect,
   useId,
   useMemo,
   useState,
@@ -31,8 +30,8 @@ import { ClubBadge } from "@/components/vote/club-badge";
 import { Combobox, type ComboboxOption } from "@/components/vote/combobox";
 import { FanCard, type Scope } from "@/components/vote/fan-card";
 import { VoteBackdrop } from "@/components/vote/vote-backdrop";
-import { markSignedIn, markVoted } from "@/lib/auth/simulated-session";
-import { SIMULATED_DELAY_MS, wait } from "@/lib/auth/simulation";
+import { AUTH_ROUTES } from "@/lib/auth/routes";
+import { registerVote } from "@/lib/vote/actions";
 import { CANTONS, CLUBS, CONTINENTS, PROVINCES } from "@/mocks/catalogs";
 import { POPULAR_CLUB_IDS } from "@/mocks/popular-clubs";
 
@@ -71,9 +70,8 @@ const STACK_ONLY = "lg:hidden tablet:landscape:hidden";
  * Formulario de voto: ubicación (Nacional: provincia y cantón; Internacional:
  * continente) y equipo. docs/DATOS_INFORMATION.md, Módulos 3 y 4.
  *
- * SIMULACIÓN: los catálogos son una copia de las migraciones y "Enviar voto" no
- * guarda nada. El voto real se registrará en el servidor, que validará la sesión,
- * la protección contra bots y los datos; la validación de aquí solo guía al usuario.
+ * El voto se registra en el servidor, que valida la sesión y los datos; la validación
+ * de aquí solo guía al usuario.
  *
  * - lg+ y tablet en horizontal: la tarjeta del hincha queda fija a la izquierda y se
  *   llena en vivo mientras se completa el formulario de la derecha.
@@ -91,8 +89,7 @@ export function VoteScreen() {
   const [status, setStatus] = useState<"editing" | "sending" | "sent">(
     "editing",
   );
-
-  useEffect(markSignedIn, []);
+  const [sendError, setSendError] = useState(false);
 
   const ids = {
     province: `${id}-provincia`,
@@ -148,8 +145,30 @@ export function VoteScreen() {
       return;
     }
     setStatus("sending");
-    await wait(SIMULATED_DELAY_MS * 1.5);
-    markVoted();
+    setSendError(false);
+    let result;
+    try {
+      result = await registerVote({
+        scope,
+        provinceId,
+        cantonId,
+        continentId,
+        clubId,
+      });
+    } catch {
+      result = "error" as const;
+    }
+    if (result === "ya-voto" || result === "sin-sesion") {
+      window.location.assign(
+        result === "ya-voto" ? AUTH_ROUTES.results : AUTH_ROUTES.login,
+      );
+      return;
+    }
+    if (result !== "ok") {
+      setSendError(true);
+      setStatus("editing");
+      return;
+    }
     setStatus("sent");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -379,6 +398,11 @@ export function VoteScreen() {
                   Tu voto es único y definitivo: una vez enviado, no podrás
                   cambiarlo.
                 </AuthNote>
+                {sendError && (
+                  <FieldError id={`${id}-envio-error`}>
+                    No pudimos registrar tu voto. Inténtalo de nuevo.
+                  </FieldError>
+                )}
                 <button
                   type="submit"
                   disabled={status === "sending"}
@@ -516,7 +540,11 @@ function Success({ card }: { card: ReactNode }) {
         <p>Gracias por ser parte del Censo Único del Ecuador.</p>
       </AuthPanelHeader>
       <div className={`mt-14 ${STACK_ONLY}`}>{card}</div>
-      <Link href="/resultados" className={`mt-8 ${PRIMARY_BUTTON}`}>
+      <Link
+        href={AUTH_ROUTES.results}
+        prefetch={false}
+        className={`mt-8 ${PRIMARY_BUTTON}`}
+      >
         Ver resultados
       </Link>
     </div>

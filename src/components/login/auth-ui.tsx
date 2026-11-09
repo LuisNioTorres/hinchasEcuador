@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { FlaskConical, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 
 /** Estilos comunes de los controles de las pantallas de acceso. */
 export const PRIMARY_BUTTON =
@@ -56,21 +56,5 @@ export function AuthNote({
       {icon}
       <span>{children}</span>
     </p>
-  );
-}
-
-/**
- * Atajos para revisar la simulación (por ejemplo, abrir el correo de ejemplo).
- * Se eliminan al conectar la autenticación real.
- */
-export function SimulationNote({ children }: { children: ReactNode }) {
-  return (
-    <div className="rounded-xl border border-dashed border-[#d9a400]/60 bg-[#fffbea] px-3.5 py-3 text-[0.8125rem] leading-snug text-black/70">
-      <p className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-bold tracking-wider text-[#8a6500] uppercase">
-        <FlaskConical aria-hidden="true" className="size-3.5" />
-        Solo para pruebas
-      </p>
-      <div className="flex flex-col gap-1">{children}</div>
-    </div>
   );
 }

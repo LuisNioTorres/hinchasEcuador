@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Link2Off } from "lucide-react";
 import { AuthPanelHeader, AuthShell } from "@/components/login/auth-shell";
 import { PRIMARY_BUTTON, SECONDARY_BUTTON } from "@/components/login/auth-ui";
-import { AUTH_ROUTES } from "@/lib/auth/simulation";
+import { AUTH_ROUTES } from "@/lib/auth/routes";
 
 export const metadata: Metadata = {
   title: "Enlace no válido · Censo Único del Ecuador",

@@ -1,46 +1,48 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { UserHeader } from "@/components/layout/user-header";
 import {
   UserInfoScreen,
   type FanLocation,
 } from "@/components/user-info/user-info-screen";
-import { clubOf, PROVINCE_NAME } from "@/mocks/catalog-lookup";
-import { CONTINENTS } from "@/mocks/catalogs";
-import { CURRENT_USER } from "@/mocks/current-user";
+import { requireOwnVote, requireProfile } from "@/lib/auth/current-user";
+import { clubOf } from "@/mocks/catalog-lookup";
 
 export const metadata: Metadata = {
   title: "Mi información · Censo Único del Ecuador",
   robots: { index: false, follow: false },
 };
 
-/** Información del usuario logueado. SIMULACIÓN: datos de src/mocks/current-user.ts. */
-export default function UserInfoPage() {
-  const { location: place } = CURRENT_USER;
-  const location: FanLocation =
-    place.kind === "nacional"
-      ? {
-          kind: "nacional",
-          province: PROVINCE_NAME.get(place.provinceId) ?? "",
-          country: place.country,
-        }
-      : {
-          kind: "internacional",
-          continent:
-            CONTINENTS.find((c) => c.id === place.continentId)?.name ?? "",
-        };
+async function UserInfo() {
+  const [profile, vote] = await Promise.all([
+    requireProfile(),
+    requireOwnVote(),
+  ]);
+  const location: FanLocation = vote.provincia
+    ? { kind: "nacional", province: vote.provincia, country: "Ecuador" }
+    : { kind: "internacional", continent: vote.continente ?? "" };
 
   return (
     <>
-      <UserHeader fullName={CURRENT_USER.fullName} />
+      <UserHeader fullName={profile.fullName} />
       <UserInfoScreen
         initialName={{
-          firstName: CURRENT_USER.firstName,
-          lastName: CURRENT_USER.lastName,
+          firstName: profile.firstName,
+          lastName: profile.lastName,
         }}
-        fanNumber={CURRENT_USER.fanNumber}
+        fanNumber={vote.numero_voto}
         location={location}
-        club={clubOf(CURRENT_USER.clubId)}
+        club={clubOf(vote.club_slug)}
       />
     </>
+  );
+}
+
+/** Información del usuario logueado. */
+export default function UserInfoPage() {
+  return (
+    <Suspense fallback={<div className="min-h-svh" />}>
+      <UserInfo />
+    </Suspense>
   );
 }

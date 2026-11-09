@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   useEffect,
   useId,
@@ -21,16 +20,11 @@ import {
 } from "@/components/login/auth-ui";
 import { ClubBadge } from "@/components/vote/club-badge";
 import { VoteBackdrop } from "@/components/vote/vote-backdrop";
-import {
-  clearSimulatedSession,
-  saveEditedName,
-  useEditedName,
-  type ProfileName,
-} from "@/lib/auth/simulated-profile";
-import { AUTH_ROUTES, SIMULATED_DELAY_MS, wait } from "@/lib/auth/simulation";
+import { saveName, signOut } from "@/lib/auth/actions";
+import { AUTH_ROUTES } from "@/lib/auth/routes";
 import type { Club } from "@/mocks/catalogs";
 
-/** Juntos caben en `profiles.nombre_completo` (VARCHAR 150). */
+/** Igual que `profiles.nombre` y `profiles.apellido`. */
 const MAX_LENGTH = 70;
 
 /** Quien vive en el exterior solo tiene continente. */
@@ -38,6 +32,7 @@ export type FanLocation =
   | { kind: "nacional"; province: string; country: string }
   | { kind: "internacional"; continent: string };
 
+type ProfileName = { firstName: string; lastName: string };
 type Field = keyof ProfileName;
 type Errors = Partial<Record<Field, string>>;
 
@@ -88,9 +83,6 @@ function Item({
 /**
  * Información del usuario. Nombre y apellido son lo único editable: el ID DEL HINCHA
  * y el voto no cambian nunca (docs/DATOS_INFORMATION.md, Módulo 3).
- *
- * SIMULACIÓN: el nombre se recuerda solo en esta pestaña y "Cerrar sesión" no cierra
- * una sesión real, porque la autenticación aún no está conectada.
  */
 export function UserInfoScreen({
   initialName,
@@ -104,11 +96,11 @@ export function UserInfoScreen({
   club: Club;
 }) {
   const id = useId();
-  const router = useRouter();
-  const name = useEditedName() ?? initialName;
+  const name = initialName;
   const [draft, setDraft] = useState<ProfileName | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [busy, setBusy] = useState<"saving" | "leaving" | null>(null);
+  const [saveError, setSaveError] = useState(false);
 
   // Al salir del modo edición, el foco vuelve al botón que lo abrió.
   const editButton = useRef<HTMLButtonElement>(null);
@@ -133,17 +125,17 @@ export function UserInfoScreen({
     setErrors(next);
     if (Object.keys(next).length > 0) return;
     setBusy("saving");
-    await wait(SIMULATED_DELAY_MS);
-    saveEditedName(clean);
+    setSaveError(false);
+    const { ok } = await saveName(clean.firstName, clean.lastName);
     setBusy(null);
-    setDraft(null);
+    if (ok) setDraft(null);
+    else setSaveError(true);
   };
 
   const handleSignOut = async () => {
     setBusy("leaving");
-    await wait(SIMULATED_DELAY_MS);
-    clearSimulatedSession();
-    router.replace(AUTH_ROUTES.login);
+    await signOut();
+    window.location.replace(AUTH_ROUTES.login);
   };
 
   return (
@@ -204,6 +196,13 @@ export function UserInfoScreen({
                   );
                 })}
               </div>
+              {saveError && (
+                <div className="mt-3">
+                  <FieldError id={`${id}-save-error`}>
+                    No pudimos guardar los cambios. Inténtalo de nuevo.
+                  </FieldError>
+                </div>
+              )}
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <button
                   type="button"

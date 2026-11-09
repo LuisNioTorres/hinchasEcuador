@@ -1,25 +1,38 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { AuthPanelHeader } from "@/components/login/auth-shell";
-import { AUTH_ROUTES, SIMULATED_DELAY_MS } from "@/lib/auth/simulation";
+import { AUTH_ROUTES } from "@/lib/auth/routes";
+import { createClient } from "@/lib/supabase/client";
 
 /**
- * Destino del enlace mágico mientras se comprueba. SIMULACIÓN: siempre sale bien y
- * pasa a "Tu nombre". Con la autenticación real, si el enlace venció o ya se usó,
- * se redirige a "Enlace no válido".
+ * Destino del enlace mágico. Se comprueba desde esta página, y no al abrir la URL en
+ * el servidor, para que los filtros de correo que revisan enlaces no lo gasten. Si
+ * venció o ya se usó, pasa a "Enlace no válido".
  */
 export function ConfirmPanel() {
   const router = useRouter();
+  const started = useRef(false);
 
   useEffect(() => {
-    const timer = setTimeout(
-      () => router.replace(AUTH_ROUTES.name),
-      SIMULATED_DELAY_MS * 1.5,
+    if (started.current) return;
+    started.current = true;
+
+    const tokenHash = new URLSearchParams(window.location.search).get(
+      "token_hash",
     );
-    return () => clearTimeout(timer);
+    if (!tokenHash) {
+      router.replace(AUTH_ROUTES.expiredLink);
+      return;
+    }
+    createClient()
+      .auth.verifyOtp({ token_hash: tokenHash, type: "email" })
+      .then(({ error }) => {
+        if (error) router.replace(AUTH_ROUTES.expiredLink);
+        else window.location.assign(AUTH_ROUTES.login);
+      });
   }, [router]);
 
   return (

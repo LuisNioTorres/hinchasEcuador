@@ -119,6 +119,17 @@ Revisión del proyecto real (2026-11-07): las migraciones coinciden. `profiles` 
 - [x] Revisión con el asesor de seguridad de Supabase en el proyecto real
 - [x] Lint y build correctos
 
+### Etapa de login y voto real
+Probada en Docker local el 2026-11-09, sin tocar el proyecto real: 77 de 77 pruebas de base de datos (`supabase/tests/fase4.mjs`) y 75 de 75 comprobaciones del recorrido en navegador.
+
+- [x] Migración `20261109120000_perfil_editable_numero_voto.sql` probada en local
+- [x] Bloqueo del cambio de correo (riesgo de la fase Login)
+- [ ] Migración aplicada en el proyecto real
+- [ ] `SUPABASE_SECRET_KEY` en `.env.local` y en Vercel
+- [ ] Plantilla `supabase/templates/acceso.html` en el panel (Magic Link y Confirm signup)
+- [ ] URLs del sitio y de redirección en el panel
+- [ ] Google activado y probado de punta a punta
+
 ## Catálogo de clubes
 
 - [x] Carga de 95 clubes de Serie A y Serie B hasta 2026 (`20261106130000_cargar_clubes.sql`)

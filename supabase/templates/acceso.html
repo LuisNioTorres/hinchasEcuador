@@ -5,12 +5,11 @@
 
   Variables de Supabase Auth:
     {{ .SiteURL }}          URL del sitio (para el logo).
-    {{ .ConfirmationURL }}  enlace mágico.
+    {{ .TokenHash }}        identifica el enlace mágico (/votar/confirmar lo comprueba).
     {{ .Token }}            código de 6 dígitos (otp_length en config.toml).
 
-  AÚN NO ESTÁ CONECTADO: se configurará en supabase/config.toml y en el panel de
-  Supabase cuando se apruebe la autenticación real. Hasta entonces solo se muestra
-  en la vista previa /votar/vista-correo.
+  En local se conecta desde supabase/config.toml. En el proyecto real se pega en el
+  panel de Supabase (plantillas "Magic Link" y "Confirm signup").
 
   HTML de correo: tablas y estilos en línea, porque muchos clientes de correo
   (Outlook, Gmail) ignoran el CSS moderno.
@@ -107,7 +106,7 @@
                       style="border-radius: 12px; background-color: #154e8e"
                     >
                       <a
-                        href="{{ .ConfirmationURL }}"
+                        href="{{ .SiteURL }}/votar/confirmar?token_hash={{ .TokenHash }}&type=email"
                         style="
                           display: inline-block;
                           padding: 14px 32px;

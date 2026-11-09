@@ -245,6 +245,14 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+[auth.email.template.magic_link]
+subject = "Tu acceso al Censo Único del Ecuador"
+content_path = "./supabase/templates/acceso.html"
+
+[auth.email.template.confirmation]
+subject = "Tu acceso al Censo Único del Ecuador"
+content_path = "./supabase/templates/acceso.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"

@@ -98,7 +98,7 @@ async function user(tag, { confirm = true, meta } = {}) {
   }
   return { id: r.json.id, email, token };
 }
-const nombre = (u) => sql(`select coalesce(nombre_completo,'<null>') from public.profiles where id='${u.id}'`);
+const nombre = (u) => sql(`select coalesce(nombre,'<null>')||' '||coalesce(apellido,'<null>') from public.profiles where id='${u.id}'`);
 const haVotado = (u) => sql(`select ha_votado from public.profiles where id='${u.id}'`);
 const votosDe = (u) => Number(sql(`select count(*) from public.votos where usuario_id='${u.id}'`));
 const votar = (body, key = SERVICE_ROLE_KEY) =>
@@ -125,20 +125,25 @@ const conteoVotosInicial = Number(sql('select count(*) from public.votos'));
 
 group = 'Perfil automático';
 await t('Crear una cuenta crea su perfil con correo y nombre', () => {
-  const row = sql(`select email,nombre_completo,ha_votado from public.profiles where id='${u1.id}'`);
+  const row = sql(`select email,nombre||' '||apellido,ha_votado from public.profiles where id='${u1.id}'`);
   must(row === `${u1.email}|${nombreOriginal}|f`, `fila: ${row}`);
   return row.replace(u1.email, '<correo>');
 });
 await t('El nombre también se toma de "name" (como Google)', () => {
   must(nombre(u2) === 'Otro Usuario', nombre(u2));
 });
-await t('Un nombre de 200 letras se recorta a 150 sin impedir el registro', async () => {
+await t('Un nombre de 200 letras se recorta a 70 sin impedir el registro', async () => {
   const u = await user('largo', { meta: { full_name: 'x'.repeat(200) } });
-  must(nombre(u).length === 150, `largo ${nombre(u).length}`);
+  must(nombre(u) === 'x'.repeat(70) + ' <null>', nombre(u));
+});
+await t('Con given_name y family_name se usan tal cual', async () => {
+  const u = await user('google', { meta: { full_name: 'María José Paz', given_name: 'María José', family_name: 'Paz' } });
+  must(nombre(u) === 'María José Paz', nombre(u));
+  must(sql(`select nombre from public.profiles where id='${u.id}'`) === 'María José', 'nombre mal separado');
 });
 await t('Un nombre vacío queda sin nombre', async () => {
   const u = await user('vacio', { meta: { full_name: '   ' } });
-  must(nombre(u) === '<null>', nombre(u));
+  must(nombre(u) === '<null> <null>', nombre(u));
 });
 await t('El registro público (signup) también crea el perfil', async () => {
   const email = `signup.${run}@prueba.local`;
@@ -152,7 +157,7 @@ group = 'Visitante sin cuenta';
 await t('No puede votar', async () => denied(await http('/rest/v1/votos', { method: 'POST', body: { usuario_id: u1.id, club_id: clubA, ...enProvA } })));
 await t('No puede leer votos', async () => denied(await http('/rest/v1/votos?select=*')));
 await t('No puede leer perfiles', async () => denied(await http('/rest/v1/profiles?select=*')));
-await t('No puede editar perfiles', async () => denied(await http(`/rest/v1/profiles?id=eq.${u1.id}`, { method: 'PATCH', body: { nombre_completo: 'hack' } })));
+await t('No puede editar perfiles', async () => denied(await http(`/rest/v1/profiles?id=eq.${u1.id}`, { method: 'PATCH', body: { nombre: 'hack' } })));
 await t('Las funciones internas no son accesibles por la API', async () => {
   const r = await http('/rest/v1/rpc/marcar_ha_votado', { method: 'POST', body: {} });
   must(r.status === 404, brief(r));
@@ -176,11 +181,11 @@ await t('No puede leer el perfil ajeno', async () => {
   must(r.status === 200 && r.json.length === 0, `${r.status}: ${r.text}`);
 });
 await t('No puede editar el perfil ajeno', async () => {
-  await http(`/rest/v1/profiles?id=eq.${u2.id}`, { method: 'PATCH', token: u1.token, body: { nombre_completo: 'hack' } });
+  await http(`/rest/v1/profiles?id=eq.${u2.id}`, { method: 'PATCH', token: u1.token, body: { nombre: 'hack' } });
   must(nombre(u2) === 'Otro Usuario', nombre(u2));
 });
 await t('Puede corregir su nombre', async () => {
-  const r = await http(`/rest/v1/profiles?id=eq.${u1.id}`, { method: 'PATCH', token: u1.token, body: { nombre_completo: 'Nombre Corregido' } });
+  const r = await http(`/rest/v1/profiles?id=eq.${u1.id}`, { method: 'PATCH', token: u1.token, body: { nombre: 'Nombre', apellido: 'Corregido' } });
   must(r.status === 204, brief(r));
   must(nombre(u1) === 'Nombre Corregido', nombre(u1));
 });
@@ -339,17 +344,26 @@ await t('No se puede borrar un club, cantón o provincia con votos', () => {
   }
 });
 
-group = 'Perfil bloqueado tras votar';
-await t('El usuario ya no puede corregir su nombre', async () => {
-  await http(`/rest/v1/profiles?id=eq.${u1.id}`, { method: 'PATCH', token: u1.token, body: { nombre_completo: 'Cambio Tardío' } });
-  must(nombre(u1) === 'Nombre Corregido', nombre(u1));
+group = 'Perfil tras votar';
+await t('El usuario puede cambiar su nombre y apellido', async () => {
+  const antes = sql(`select club_id,numero_voto from public.votos where usuario_id='${u1.id}'`);
+  const r = await http(`/rest/v1/profiles?id=eq.${u1.id}`, { method: 'PATCH', token: u1.token, body: { nombre: 'Nuevo', apellido: 'Apellido' } });
+  must(r.status === 204, brief(r));
+  must(nombre(u1) === 'Nuevo Apellido', nombre(u1));
+  must(votosDe(u1) === 1, 'cambió el número de votos');
+  must(sql(`select club_id,numero_voto from public.votos where usuario_id='${u1.id}'`) === antes, 'el voto cambió');
 });
-await t('La base de datos directa tampoco puede cambiarlo ni desmarcar ha_votado', () => {
-  for (const c of [`nombre_completo='x'`, `ha_votado=false`]) {
+await t('Sigue sin poder cambiar su email ni ha_votado', async () => {
+  denied(await http(`/rest/v1/profiles?id=eq.${u1.id}`, { method: 'PATCH', token: u1.token, body: { email: 'x@x.com' } }));
+  denied(await http(`/rest/v1/profiles?id=eq.${u1.id}`, { method: 'PATCH', token: u1.token, body: { ha_votado: false } }));
+  must(haVotado(u1) === 't', 'ha_votado cambió');
+});
+await t('Ni la base de datos directa cambia id, email o ha_votado', () => {
+  for (const [c, texto] of [[`email='x@x.com'`, 'no se pueden cambiar'], [`id='${FANTASMA}'`, 'no se pueden cambiar'], ['ha_votado=false', 'solo lo puede cambiar']]) {
     const e = sqlErr(`update public.profiles set ${c} where id='${u1.id}'`);
-    must(e?.includes('bloqueado'), `error: ${e}`);
+    must(e?.includes(texto), `error: ${e}`);
   }
-  must(nombre(u1) === 'Nombre Corregido' && haVotado(u1) === 't', 'perfil cambió');
+  must(haVotado(u1) === 't', 'ha_votado cambió');
 });
 await t('El perfil de quien votó no se puede borrar', () => {
   const e = sqlErr(`delete from public.profiles where id='${u1.id}'`);
@@ -404,12 +418,12 @@ await t('Permisos exactos de profiles y votos', () => {
   must(rows === esperado, `encontrado:\n${rows}`);
   return rows.replace('\n', ', ');
 });
-await t('Permisos de columna en profiles: solo nombre_completo', () => {
+await t('Permisos de columna en profiles: solo nombre y apellido', () => {
   const rows = sql(`
     select grantee||'.'||column_name||'.'||privilege_type from information_schema.column_privileges
     where table_schema='public' and table_name='profiles' and privilege_type='UPDATE'
       and grantee in ('anon','authenticated','service_role','PUBLIC') order by 1`);
-  must(rows === 'authenticated.nombre_completo.UPDATE', `encontrado:\n${rows}`);
+  must(rows === 'authenticated.apellido.UPDATE\nauthenticated.nombre.UPDATE', `encontrado:\n${rows}`);
 });
 await t('La clave secreta no tiene ningún permiso en los catálogos', () => {
   const rows = sql(`
@@ -428,11 +442,72 @@ await t('El esquema private no es accesible', () => {
     must(sql(`select has_schema_privilege('${r}','private','USAGE')`) === 'f', `${r} tiene acceso`);
   }
 });
+group = 'ID DEL HINCHA';
+const numeros = () => sql('select numero_voto from public.votos order by numero_voto').split('\n').map(Number);
+const sinHuecos = (ns) => ns.every((n, i) => n === i + 1);
+await t('Los votos están numerados desde 1 y sin huecos, tras varios rechazos', () => {
+  const ns = numeros();
+  must(ns.length === 4 && sinHuecos(ns), ns.join(','));
+  return ns.join(',');
+});
+await t('Enviar un número a mano no sirve: lo pone la base de datos', async () => {
+  const u = await user('numero');
+  const r = await votar({ usuario_id: u.id, club_id: clubA, ...enProvA, numero_voto: 9999 });
+  must(r.status === 201, brief(r));
+  must(sql(`select numero_voto from public.votos where usuario_id='${u.id}'`) === '5', 'número equivocado');
+});
+await t('El número no se puede cambiar, ni con acceso directo', () => {
+  const e = sqlErr(`update public.votos set numero_voto=1000 where usuario_id='${u1.id}'`);
+  must(e?.includes('no se puede cambiar'), `error: ${e}`);
+});
+await t('20 votos simultáneos reciben números distintos y seguidos', async () => {
+  const us = await Promise.all(Array.from({ length: 20 }, (_, i) => user(`sim${i}`)));
+  const rs = await Promise.all(us.map((u) => votar({ usuario_id: u.id, club_id: clubB, ...enProvA })));
+  must(rs.every((r) => r.status === 201), rs.map((r) => r.status).join(','));
+  const ns = numeros();
+  must(ns.length === 25 && sinHuecos(ns), ns.join(','));
+});
+
+group = 'Consulta del propio voto';
+await t('mi_voto devuelve solo el voto propio', async () => {
+  const r = await http('/rest/v1/rpc/mi_voto', { method: 'POST', token: u1.token, body: {} });
+  must(r.status === 200 && r.json.length === 1, brief(r));
+  const fila = sql(`select numero_voto from public.votos where usuario_id='${u1.id}'`);
+  must(String(r.json[0].numero_voto) === fila && r.json[0].club_slug, JSON.stringify(r.json));
+  return JSON.stringify(Object.keys(r.json[0]));
+});
+await t('mi_voto no devuelve nada a quien no ha votado', async () => {
+  const u = await user('sinvotar');
+  const r = await http('/rest/v1/rpc/mi_voto', { method: 'POST', token: u.token, body: {} });
+  must(r.status === 200 && r.json.length === 0, brief(r));
+});
+await t('Un visitante y la clave secreta no pueden usar mi_voto', async () => {
+  denied(await http('/rest/v1/rpc/mi_voto', { method: 'POST', body: {} }));
+  denied(await service('/rest/v1/rpc/mi_voto', { method: 'POST', body: {} }));
+});
+
+group = 'Cambio de correo';
+await t('La API de administración no puede cambiar el correo', async () => {
+  const r = await service(`/auth/v1/admin/users/${u2.id}`, { method: 'PUT', body: { email: 'otro@prueba.local', email_confirm: true } });
+  must(r.status >= 400, `debió rechazarse: ${brief(r)}`);
+  must(sql(`select email from auth.users where id='${u2.id}'`) === u2.email, 'el correo cambió');
+  return `HTTP ${r.status}`;
+});
+await t('Tampoco por SQL directo', () => {
+  const e = sqlErr(`update auth.users set email='z@z.com' where id='${u1.id}'`);
+  must(e?.includes('no se puede cambiar'), `error: ${e}`);
+});
+await t('Actualizar otros datos de la cuenta sigue funcionando (inicio de sesión)', async () => {
+  const r = await service(`/auth/v1/admin/users/${u2.id}`, { method: 'PUT', body: { user_metadata: { prueba: 1 } } });
+  must(r.status === 200, brief(r));
+});
+
+group = 'Permisos finales';
 await t('Sin votos perdidos ni inventados en toda la corrida', () => {
   const v = Number(sql('select count(*) from public.votos'));
   const h = Number(sql('select count(*) from public.profiles where ha_votado'));
   must(conteoVotosInicial === 0, `inicial ${conteoVotosInicial}`);
-  must(v === 4 && h === 4, `votos=${v}, ha_votado=${h}`);
+  must(v === 25 && h === 25, `votos=${v}, ha_votado=${h}`);
   return `votos=${v}, ha_votado=${h}`;
 });
 

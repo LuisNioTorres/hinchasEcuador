@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   useEffect,
   useId,
@@ -16,20 +15,18 @@ import {
   FIELD_LABEL,
   FieldError,
   PRIMARY_BUTTON,
-  SimulationNote,
   Spinner,
   TEXT_LINK,
 } from "@/components/login/auth-ui";
 import { CodeInput } from "@/components/login/code-input";
+import { recallEmail } from "@/lib/auth/pending-email";
 import {
   AUTH_ROUTES,
   OTP_EXPIRY_MINUTES,
   OTP_LENGTH,
   RESEND_COOLDOWN_SECONDS,
-  SIMULATED_DELAY_MS,
-  recallEmail,
-  wait,
-} from "@/lib/auth/simulation";
+} from "@/lib/auth/routes";
+import { createClient } from "@/lib/supabase/client";
 
 const noSubscribe = () => () => {};
 
@@ -38,11 +35,9 @@ const formatSeconds = (seconds: number) =>
 
 /**
  * "Revisa tu correo": el usuario pulsa el enlace del correo o escribe aquí el código.
- * SIMULACIÓN: cualquier código de 6 dígitos es válido y el reenvío no envía nada.
  */
 export function CheckEmailPanel() {
   const id = useId();
-  const router = useRouter();
   const email = useSyncExternalStore(noSubscribe, recallEmail, () => null);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -65,12 +60,37 @@ export function CheckEmailPanel() {
       setError(`Ingresa los ${OTP_LENGTH} dígitos del código.`);
       return;
     }
+    if (!email) {
+      setError("Vuelve al inicio y pide un correo nuevo.");
+      return;
+    }
     setVerifying(true);
-    await wait(SIMULATED_DELAY_MS);
-    router.push(AUTH_ROUTES.name);
+    const { error: verifyError } = await createClient().auth.verifyOtp({
+      email,
+      token: code,
+      type: "email",
+    });
+    if (verifyError) {
+      setError("El código no es válido o ya venció.");
+      setVerifying(false);
+      return;
+    }
+    window.location.assign(AUTH_ROUTES.login);
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
+    if (!email) {
+      setError("Vuelve al inicio y pide un correo nuevo.");
+      return;
+    }
+    setResent(false);
+    const { error: resendError } = await createClient().auth.signInWithOtp({
+      email,
+    });
+    if (resendError) {
+      setError("No pudimos reenviar el correo. Inténtalo más tarde.");
+      return;
+    }
     setResent(true);
     setCooldown(RESEND_COOLDOWN_SECONDS);
   };
@@ -151,11 +171,6 @@ export function CheckEmailPanel() {
           Si no lo ves, revisa tu carpeta de spam o correo no deseado. El enlace
           y el código vencen en {OTP_EXPIRY_MINUTES} minutos.
         </AuthNote>
-        <SimulationNote>
-          <Link href={AUTH_ROUTES.emailPreview} className={TEXT_LINK}>
-            Ver el correo que recibe el usuario
-          </Link>
-        </SimulationNote>
       </div>
     </>
   );

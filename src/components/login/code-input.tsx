@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { OTP_LENGTH } from "@/lib/auth/simulation";
+import { OTP_LENGTH } from "@/lib/auth/routes";
 
 /**
  * Campo del código de un solo uso. Es un único `input` real (pegar, autocompletar

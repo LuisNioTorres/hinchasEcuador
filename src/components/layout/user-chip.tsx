@@ -1,7 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { useEditedName } from "@/lib/auth/simulated-profile";
+import { AUTH_ROUTES } from "@/lib/auth/routes";
 
 function initialsOf(fullName: string) {
   const parts = fullName.trim().split(/\s+/);
@@ -12,16 +10,12 @@ function initialsOf(fullName: string) {
  * Nombre del usuario a la derecha del header; lleva a su información. En teléfono
  * muestra solo el nombre de pila para que quepa.
  */
-export function UserChip({ fullName: initialName }: { fullName: string }) {
-  const edited = useEditedName();
-  const fullName = edited
-    ? `${edited.firstName} ${edited.lastName}`
-    : initialName;
-  const firstName = edited?.firstName ?? fullName.trim().split(/\s+/)[0];
+export function UserChip({ fullName }: { fullName: string }) {
+  const firstName = fullName.trim().split(/\s+/)[0];
 
   return (
     <Link
-      href="/user-info"
+      href={AUTH_ROUTES.userInfo}
       aria-label={`Ver mi información: ${fullName}`}
       className="flex max-w-[50vw] shrink-0 items-center gap-2.5 rounded-full border border-black/10 bg-white/80 py-1 pr-1 pl-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-results-blue max-sm:pl-1 wide:py-0.5"
     >

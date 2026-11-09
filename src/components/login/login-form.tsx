@@ -11,12 +11,9 @@ import {
   SECONDARY_BUTTON,
   Spinner,
 } from "@/components/login/auth-ui";
-import {
-  AUTH_ROUTES,
-  SIMULATED_DELAY_MS,
-  rememberEmail,
-  wait,
-} from "@/lib/auth/simulation";
+import { rememberEmail } from "@/lib/auth/pending-email";
+import { AUTH_ROUTES } from "@/lib/auth/routes";
+import { createClient } from "@/lib/supabase/client";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -24,20 +21,15 @@ type Pending = "google" | "email" | null;
 
 /**
  * Formulario de acceso: Google o correo con enlace y código, sin contraseñas
- * (docs/DATOS_INFORMATION.md, Módulo 3).
- *
- * SIMULACIÓN: todavía no se conecta con Supabase Auth, porque la autenticación real
- * aún no está aprobada (CLAUDE.md). Simula el caso perfecto:
- * - Google: entra directo a la página de usuario logueado (Google ya da el nombre).
- * - Correo: pasa a "Revisa tu correo".
- * El correo se valida aquí solo para mostrar el estado de error; la validación
- * definitiva irá en el servidor.
+ * (docs/DATOS_INFORMATION.md, Módulo 3). El formato del correo se revisa aquí solo
+ * para guiar al usuario; quien lo valida es Supabase Auth.
  */
 export function LoginForm() {
   const id = useId();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [googleError, setGoogleError] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending>(null);
 
   const emailId = `${id}-email`;
@@ -46,8 +38,17 @@ export function LoginForm() {
 
   const handleGoogle = async () => {
     setPending("google");
-    await wait(SIMULATED_DELAY_MS);
-    router.push(AUTH_ROUTES.loggedIn);
+    setGoogleError(null);
+    const { error: oauthError } = await createClient().auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}${AUTH_ROUTES.callback}`,
+      },
+    });
+    if (oauthError) {
+      setGoogleError("No pudimos conectar con Google. Inténtalo de nuevo.");
+      setPending(null);
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -58,8 +59,19 @@ export function LoginForm() {
       return;
     }
     setPending("email");
+    const { error: sendError } = await createClient().auth.signInWithOtp({
+      email: value,
+    });
+    if (sendError) {
+      setError(
+        sendError.status === 429
+          ? "Se enviaron demasiados correos. Espera un momento e inténtalo de nuevo."
+          : "No pudimos enviar el correo. Inténtalo de nuevo.",
+      );
+      setPending(null);
+      return;
+    }
     rememberEmail(value);
-    await wait(SIMULATED_DELAY_MS);
     router.push(AUTH_ROUTES.checkEmail);
   };
 
@@ -76,6 +88,9 @@ export function LoginForm() {
           ? "Conectando con Google…"
           : "Continuar con Google"}
       </button>
+      {googleError && (
+        <FieldError id={`${id}-google`}>{googleError}</FieldError>
+      )}
 
       <div className="flex items-center gap-3 text-xs font-medium text-black/45">
         <span className="h-px flex-1 bg-black/10" />o

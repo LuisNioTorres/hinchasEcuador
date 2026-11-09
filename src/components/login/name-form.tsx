@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import {
   FIELD_LABEL,
@@ -10,9 +9,10 @@ import {
   Spinner,
   textInputClass,
 } from "@/components/login/auth-ui";
-import { AUTH_ROUTES, SIMULATED_DELAY_MS, wait } from "@/lib/auth/simulation";
+import { saveName } from "@/lib/auth/actions";
+import { AUTH_ROUTES } from "@/lib/auth/routes";
 
-/** Juntos caben en `profiles.nombre_completo` (VARCHAR 150). */
+/** Igual que `profiles.nombre` y `profiles.apellido`. */
 const MAX_LENGTH = 70;
 
 type Field = "firstName" | "lastName";
@@ -42,19 +42,17 @@ const FIELDS: readonly {
 ];
 
 /**
- * Nombre y apellido, solo para quien entra con correo (Google ya los da).
- * SIMULACIÓN: no guarda nada y pasa a la página de usuario logueado. La validación
- * definitiva irá en el servidor.
+ * Nombre y apellido, para quien entra con correo (Google ya los da).
  */
 export function NameForm() {
   const id = useId();
-  const router = useRouter();
   const [values, setValues] = useState<Record<Field, string>>({
     firstName: "",
     lastName: "",
   });
   const [errors, setErrors] = useState<Errors>({});
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -65,8 +63,14 @@ export function NameForm() {
     setErrors(next);
     if (Object.keys(next).length > 0) return;
     setSaving(true);
-    await wait(SIMULATED_DELAY_MS);
-    router.push(AUTH_ROUTES.loggedIn);
+    setSaveError(false);
+    const { ok } = await saveName(values.firstName, values.lastName);
+    if (!ok) {
+      setSaveError(true);
+      setSaving(false);
+      return;
+    }
+    window.location.assign(AUTH_ROUTES.login);
   };
 
   return (
@@ -102,6 +106,11 @@ export function NameForm() {
           </div>
         );
       })}
+      {saveError && (
+        <FieldError id={`${id}-save-error`}>
+          No pudimos guardar tu nombre. Inténtalo de nuevo.
+        </FieldError>
+      )}
       <button
         type="submit"
         disabled={saving}
