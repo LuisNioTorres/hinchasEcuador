@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { VoteScreen } from "@/components/vote/vote-screen";
+import { requireAccount } from "@/lib/auth/current-user";
 import { getTopClubSlugs } from "@/lib/results/load";
 import { POPULAR_CLUB_IDS } from "@/mocks/popular-clubs";
 
@@ -14,12 +16,23 @@ const POPULAR_COUNT = 10;
  * Destino del usuario que inició sesión. "Los más elegidos" son los clubes con más
  * votos; mientras haya menos de 10 con votos, se completa con una lista inicial.
  */
-export default async function CuentaPage() {
-  const top = await getTopClubSlugs(POPULAR_COUNT);
+async function Cuenta() {
+  const [account, top] = await Promise.all([
+    requireAccount(),
+    getTopClubSlugs(POPULAR_COUNT),
+  ]);
   const popularClubIds = [...new Set([...top, ...POPULAR_CLUB_IDS])].slice(
     0,
     POPULAR_COUNT,
   );
 
-  return <VoteScreen popularClubIds={popularClubIds} />;
+  return <VoteScreen account={account} popularClubIds={popularClubIds} />;
+}
+
+export default function CuentaPage() {
+  return (
+    <Suspense fallback={<div className="min-h-svh bg-bone" />}>
+      <Cuenta />
+    </Suspense>
+  );
 }

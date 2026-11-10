@@ -30,6 +30,9 @@ import { ClubBadge } from "@/components/vote/club-badge";
 import { Combobox, type ComboboxOption } from "@/components/vote/combobox";
 import { FanCard, type Scope } from "@/components/vote/fan-card";
 import { VoteBackdrop } from "@/components/vote/vote-backdrop";
+import { AccountFrame } from "@/components/layout/account-bar";
+import type { SessionAccount } from "@/lib/auth/account";
+import { flagAccountChanged } from "@/lib/auth/session-sync";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { registerVote } from "@/lib/vote/actions";
 import { CANTONS, CLUBS, CONTINENTS, PROVINCES } from "@/mocks/catalogs";
@@ -72,8 +75,10 @@ const STACK_ONLY = "lg:hidden tablet:landscape:hidden";
  *   al final, como repaso justo antes de enviar.
  */
 export function VoteScreen({
+  account,
   popularClubIds,
 }: {
+  account: SessionAccount;
   popularClubIds: readonly string[];
 }) {
   const id = useId();
@@ -152,15 +157,18 @@ export function VoteScreen({
     setSendError(false);
     let result;
     try {
-      result = await registerVote({
-        scope,
-        provinceId,
-        cantonId,
-        continentId,
-        clubId,
-      });
+      result = await registerVote(
+        { scope, provinceId, cantonId, continentId, clubId },
+        account.userId,
+      );
     } catch {
       result = "error" as const;
+    }
+    if (result === "cuenta-cambio") {
+      // La sesión ya es de otra cuenta: se recarga para mostrarla, con un aviso.
+      flagAccountChanged();
+      window.location.reload();
+      return;
     }
     if (result === "ya-voto" || result === "sin-sesion") {
       window.location.assign(
@@ -187,249 +195,253 @@ export function VoteScreen({
   );
 
   return (
-    <main
-      className={`relative isolate flex min-h-svh flex-col bg-bone font-montserrat text-black tablet:pb-16 tablet:landscape:pb-0 ${SPLIT}`}
-    >
-      <Link
-        href="/"
-        className="absolute top-[max(1rem,env(safe-area-inset-top))] right-(--page-x) z-30 flex h-10 items-center gap-1.5 rounded-full border border-black/10 bg-white/80 px-4 text-sm font-semibold text-black/80 backdrop-blur transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-results-blue max-[21.25rem]:px-3 lg:top-8 lg:right-10"
+    <AccountFrame account={account}>
+      <main
+        className={`relative isolate flex min-h-below-bar flex-col bg-bone font-montserrat text-black tablet:pb-16 tablet:landscape:pb-0 ${SPLIT}`}
       >
-        <ArrowLeft aria-hidden="true" className="size-4" />
-        <span className="max-[21.25rem]:sr-only">Volver al inicio</span>
-      </Link>
-
-      {/* Saludo (y, en pantalla dividida, la tarjeta fija). */}
-      <aside className="relative isolate flex flex-col px-(--page-x) pt-[max(1rem,env(safe-area-inset-top))] pb-16 tablet:static tablet:mx-auto tablet:w-[min(100%-5rem,34rem)] tablet:px-0 tablet:pt-6 tablet:pb-0 tablet:landscape:sticky tablet:landscape:top-0 tablet:landscape:mx-0 tablet:landscape:h-svh tablet:landscape:w-auto tablet:landscape:justify-center-safe tablet:landscape:px-[5vw] tablet:landscape:py-16 wide:pb-12 lg:sticky lg:top-0 lg:h-svh lg:justify-center-safe lg:px-[5.5vw] lg:py-16">
-        <VoteBackdrop />
-
         <Link
           href="/"
-          aria-label="Ir a la página principal"
-          className="w-fit rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-results-blue"
+          className="absolute top-[max(1rem,env(safe-area-inset-top))] right-(--page-x) z-30 flex h-10 items-center gap-1.5 rounded-full border border-black/10 bg-white/80 px-4 text-sm font-semibold text-black/80 backdrop-blur transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-results-blue max-[21.25rem]:px-3 lg:top-8 lg:right-10"
         >
-          <Image
-            src={ownerAssets.companyIcon.src}
-            alt={ownerAssets.companyIcon.alt}
-            width={ownerAssets.companyIcon.width}
-            height={ownerAssets.companyIcon.height}
-            preload
-            className="h-auto w-[6.5rem] tablet:w-[7rem] tablet:landscape:w-[6rem] wide:w-[5rem] lg:w-[clamp(6rem,6.5vw,8.5rem)]"
-          />
+          <ArrowLeft aria-hidden="true" className="size-4" />
+          <span className="max-[21.25rem]:sr-only">Volver al inicio</span>
         </Link>
 
-        <div className="mt-8 tablet:mt-10 wide:mt-5 lg:mt-10">
-          <h1 className="font-tiro text-[clamp(2.25rem,11vw,3rem)] leading-[1.05] text-[#0b1f3f] italic tablet:text-[clamp(2.75rem,6.5vw,3.5rem)] tablet:landscape:text-[clamp(2.25rem,4.4vw,3rem)] wide:text-[clamp(1.75rem,4.6vw,2.25rem)] lg:text-[clamp(2.75rem,3.6vw,4.5rem)]">
-            {status === "sent" ? "¡GRACIAS, CRACK!" : "YA CASI, CRACK"}
-          </h1>
-          <p className="mt-4 max-w-[30rem] text-[0.8125rem] leading-relaxed font-semibold tracking-wide text-[#0b1f3f]/75 uppercase tablet:text-sm wide:mt-2 wide:text-xs lg:mt-5 lg:text-[clamp(0.8125rem,0.95vw,1rem)]">
-            {status === "sent"
-              ? "Ya eres parte del censo."
-              : "Cuéntanos dónde vives y cuál es tu equipo para completar tu voto."}
-          </p>
-        </div>
+        {/* Saludo (y, en pantalla dividida, la tarjeta fija). */}
+        <aside className="relative isolate flex flex-col px-(--page-x) pt-[max(1rem,env(safe-area-inset-top))] pb-16 tablet:static tablet:mx-auto tablet:w-[min(100%-5rem,34rem)] tablet:px-0 tablet:pt-6 tablet:pb-0 tablet:landscape:sticky tablet:landscape:top-(--account-bar-h) tablet:landscape:mx-0 tablet:landscape:h-below-bar tablet:landscape:w-auto tablet:landscape:justify-center-safe tablet:landscape:px-[5vw] tablet:landscape:py-16 wide:pb-12 lg:sticky lg:top-(--account-bar-h) lg:h-below-bar lg:justify-center-safe lg:px-[5.5vw] lg:py-16">
+          <VoteBackdrop />
 
-        <div
-          className={`mt-10 w-full max-w-[25rem] lg:mt-[clamp(2rem,5svh,3.5rem)] ${SPLIT_ONLY}`}
-        >
-          {card}
-        </div>
-      </aside>
+          <Link
+            href="/"
+            aria-label="Ir a la página principal"
+            className="w-fit rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-results-blue"
+          >
+            <Image
+              src={ownerAssets.companyIcon.src}
+              alt={ownerAssets.companyIcon.alt}
+              width={ownerAssets.companyIcon.width}
+              height={ownerAssets.companyIcon.height}
+              preload
+              className="h-auto w-[6.5rem] tablet:w-[7rem] tablet:landscape:w-[6rem] wide:w-[5rem] lg:w-[clamp(6rem,6.5vw,8.5rem)]"
+            />
+          </Link>
 
-      <section className="relative z-10 -mt-8 flex-1 rounded-t-[1.75rem] bg-white px-(--page-x) pt-8 pb-[max(2.5rem,env(safe-area-inset-bottom))] shadow-[0_-0.75rem_2rem_rgba(29,58,115,0.1)] tablet:mx-auto tablet:mt-8 tablet:w-[min(100%-5rem,34rem)] tablet:flex-none tablet:rounded-3xl tablet:p-10 tablet:shadow-[0_1.5rem_3rem_rgba(29,58,115,0.16)] tablet:landscape:m-0 tablet:landscape:w-auto tablet:landscape:rounded-none tablet:landscape:px-[5vw] tablet:landscape:py-24 tablet:landscape:shadow-none wide:mt-0 wide:rounded-t-3xl lg:m-0 lg:flex lg:items-center lg:rounded-none lg:px-[6vw] lg:py-28 lg:shadow-none">
-        <div className="mx-auto w-full max-w-[30rem]">
-          {status === "sent" ? (
-            <Success card={card} />
-          ) : (
-            <form noValidate onSubmit={handleSubmit}>
-              <AuthPanelHeader title="Registra tu voto">
-                <p>Solo te tomará un minuto.</p>
-              </AuthPanelHeader>
+          <div className="mt-8 tablet:mt-10 wide:mt-5 lg:mt-10">
+            <h1 className="font-tiro text-[clamp(2.25rem,11vw,3rem)] leading-[1.05] text-[#0b1f3f] italic tablet:text-[clamp(2.75rem,6.5vw,3.5rem)] tablet:landscape:text-[clamp(2.25rem,4.4vw,3rem)] wide:text-[clamp(1.75rem,4.6vw,2.25rem)] lg:text-[clamp(2.75rem,3.6vw,4.5rem)]">
+              {status === "sent" ? "¡GRACIAS, CRACK!" : "YA CASI, CRACK"}
+            </h1>
+            <p className="mt-4 max-w-[30rem] text-[0.8125rem] leading-relaxed font-semibold tracking-wide text-[#0b1f3f]/75 uppercase tablet:text-sm wide:mt-2 wide:text-xs lg:mt-5 lg:text-[clamp(0.8125rem,0.95vw,1rem)]">
+              {status === "sent"
+                ? "Ya eres parte del censo."
+                : "Cuéntanos dónde vives y cuál es tu equipo para completar tu voto."}
+            </p>
+          </div>
 
-              {/* 1. Ubicación */}
-              <fieldset className="mt-8">
-                <Legend step={1}>¿Dónde vives?</Legend>
-                <div className="mt-4 grid grid-cols-2 gap-3 max-[21.25rem]:grid-cols-1">
-                  <ScopeOption
-                    name={`${id}-ambito`}
-                    checked={scope === "nacional"}
-                    onSelect={() => setScope("nacional")}
-                    icon={<MapPin aria-hidden="true" />}
-                    title="Nacional"
-                    subtitle="Vivo en Ecuador"
-                  />
-                  <ScopeOption
-                    name={`${id}-ambito`}
-                    checked={scope === "internacional"}
-                    onSelect={() => setScope("internacional")}
-                    icon={<Globe2 aria-hidden="true" />}
-                    title="Internacional"
-                    subtitle="Vivo fuera de Ecuador"
-                  />
-                </div>
+          <div
+            className={`mt-10 w-full max-w-[25rem] lg:mt-[clamp(2rem,5svh,3.5rem)] ${SPLIT_ONLY}`}
+          >
+            {card}
+          </div>
+        </aside>
 
-                {scope === "nacional" ? (
-                  <div className="mt-5 flex flex-col gap-4">
-                    <Combobox
-                      id={ids.province}
-                      label="Provincia"
-                      placeholder="Busca tu provincia"
-                      emptyText="No encontramos esa provincia."
-                      options={PROVINCE_OPTIONS}
-                      value={provinceId}
-                      error={errors.province}
-                      onChange={(next) => {
-                        if (next !== provinceId) setCantonId(null);
-                        setProvinceId(next);
-                        clearError("province");
-                      }}
+        <section className="relative z-10 -mt-8 flex-1 rounded-t-[1.75rem] bg-white px-(--page-x) pt-8 pb-[max(2.5rem,env(safe-area-inset-bottom))] shadow-[0_-0.75rem_2rem_rgba(29,58,115,0.1)] tablet:mx-auto tablet:mt-8 tablet:w-[min(100%-5rem,34rem)] tablet:flex-none tablet:rounded-3xl tablet:p-10 tablet:shadow-[0_1.5rem_3rem_rgba(29,58,115,0.16)] tablet:landscape:m-0 tablet:landscape:w-auto tablet:landscape:rounded-none tablet:landscape:px-[5vw] tablet:landscape:py-24 tablet:landscape:shadow-none wide:mt-0 wide:rounded-t-3xl lg:m-0 lg:flex lg:items-center lg:rounded-none lg:px-[6vw] lg:py-28 lg:shadow-none">
+          <div className="mx-auto w-full max-w-[30rem]">
+            {status === "sent" ? (
+              <Success card={card} />
+            ) : (
+              <form noValidate onSubmit={handleSubmit}>
+                <AuthPanelHeader title="Registra tu voto">
+                  <p>Solo te tomará un minuto.</p>
+                </AuthPanelHeader>
+
+                {/* 1. Ubicación */}
+                <fieldset className="mt-8">
+                  <Legend step={1}>¿Dónde vives?</Legend>
+                  <div className="mt-4 grid grid-cols-2 gap-3 max-[21.25rem]:grid-cols-1">
+                    <ScopeOption
+                      name={`${id}-ambito`}
+                      checked={scope === "nacional"}
+                      onSelect={() => setScope("nacional")}
+                      icon={<MapPin aria-hidden="true" />}
+                      title="Nacional"
+                      subtitle="Vivo en Ecuador"
                     />
-                    <Combobox
-                      id={ids.canton}
-                      label="Cantón"
-                      placeholder="Busca tu cantón"
-                      disabledPlaceholder="Primero elige tu provincia"
-                      emptyText="No encontramos ese cantón en esta provincia."
-                      options={cantonOptions}
-                      value={cantonId}
-                      disabled={!provinceId}
-                      error={errors.canton}
-                      onChange={(next) => {
-                        setCantonId(next);
-                        clearError("canton");
-                      }}
+                    <ScopeOption
+                      name={`${id}-ambito`}
+                      checked={scope === "internacional"}
+                      onSelect={() => setScope("internacional")}
+                      icon={<Globe2 aria-hidden="true" />}
+                      title="Internacional"
+                      subtitle="Vivo fuera de Ecuador"
                     />
                   </div>
-                ) : (
-                  <fieldset
-                    id={ids.continent}
-                    aria-describedby={
-                      errors.continent ? `${ids.continent}-error` : undefined
-                    }
-                    className="mt-5"
-                  >
-                    <legend className="text-sm font-semibold text-black/80">
-                      Continente
-                    </legend>
-                    <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 max-[21.25rem]:grid-cols-1">
-                      {CONTINENTS.map((c) => (
-                        <ChoiceCard
-                          key={c.id}
-                          name={`${id}-continente-opcion`}
-                          checked={continentId === c.id}
-                          onSelect={() => {
-                            setContinentId(c.id);
-                            clearError("continent");
-                          }}
-                        >
-                          <span className="text-sm font-semibold">
-                            {c.name}
-                          </span>
-                        </ChoiceCard>
-                      ))}
-                    </div>
-                    {errors.continent && (
-                      <div className="mt-2">
-                        <FieldError id={`${ids.continent}-error`}>
-                          {errors.continent}
-                        </FieldError>
-                      </div>
-                    )}
-                  </fieldset>
-                )}
-              </fieldset>
 
-              {/* 2. Equipo */}
-              <fieldset
-                id={ids.club}
-                aria-describedby={errors.club ? `${ids.club}-error` : undefined}
-                className="mt-10"
-              >
-                <Legend step={2}>Tu equipo</Legend>
-                <p className="mt-4 text-sm font-semibold text-black/80">
-                  Los más elegidos
-                </p>
-                <div className="mt-2 grid grid-cols-2 gap-2 max-[21.25rem]:grid-cols-1">
-                  {popularClubs.map((c) => (
-                    <ChoiceCard
-                      key={c.id}
-                      name={`${id}-equipo-opcion`}
-                      checked={clubId === c.id}
-                      onSelect={() => {
-                        setClubId(c.id);
+                  {scope === "nacional" ? (
+                    <div className="mt-5 flex flex-col gap-4">
+                      <Combobox
+                        id={ids.province}
+                        label="Provincia"
+                        placeholder="Busca tu provincia"
+                        emptyText="No encontramos esa provincia."
+                        options={PROVINCE_OPTIONS}
+                        value={provinceId}
+                        error={errors.province}
+                        onChange={(next) => {
+                          if (next !== provinceId) setCantonId(null);
+                          setProvinceId(next);
+                          clearError("province");
+                        }}
+                      />
+                      <Combobox
+                        id={ids.canton}
+                        label="Cantón"
+                        placeholder="Busca tu cantón"
+                        disabledPlaceholder="Primero elige tu provincia"
+                        emptyText="No encontramos ese cantón en esta provincia."
+                        options={cantonOptions}
+                        value={cantonId}
+                        disabled={!provinceId}
+                        error={errors.canton}
+                        onChange={(next) => {
+                          setCantonId(next);
+                          clearError("canton");
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <fieldset
+                      id={ids.continent}
+                      aria-describedby={
+                        errors.continent ? `${ids.continent}-error` : undefined
+                      }
+                      className="mt-5"
+                    >
+                      <legend className="text-sm font-semibold text-black/80">
+                        Continente
+                      </legend>
+                      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 max-[21.25rem]:grid-cols-1">
+                        {CONTINENTS.map((c) => (
+                          <ChoiceCard
+                            key={c.id}
+                            name={`${id}-continente-opcion`}
+                            checked={continentId === c.id}
+                            onSelect={() => {
+                              setContinentId(c.id);
+                              clearError("continent");
+                            }}
+                          >
+                            <span className="text-sm font-semibold">
+                              {c.name}
+                            </span>
+                          </ChoiceCard>
+                        ))}
+                      </div>
+                      {errors.continent && (
+                        <div className="mt-2">
+                          <FieldError id={`${ids.continent}-error`}>
+                            {errors.continent}
+                          </FieldError>
+                        </div>
+                      )}
+                    </fieldset>
+                  )}
+                </fieldset>
+
+                {/* 2. Equipo */}
+                <fieldset
+                  id={ids.club}
+                  aria-describedby={
+                    errors.club ? `${ids.club}-error` : undefined
+                  }
+                  className="mt-10"
+                >
+                  <Legend step={2}>Tu equipo</Legend>
+                  <p className="mt-4 text-sm font-semibold text-black/80">
+                    Los más elegidos
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-2 max-[21.25rem]:grid-cols-1">
+                    {popularClubs.map((c) => (
+                      <ChoiceCard
+                        key={c.id}
+                        name={`${id}-equipo-opcion`}
+                        checked={clubId === c.id}
+                        onSelect={() => {
+                          setClubId(c.id);
+                          clearError("club");
+                        }}
+                      >
+                        <ClubBadge club={c} className="size-8" />
+                        <span className="min-w-0 pr-3 text-[0.75rem] leading-tight font-semibold sm:text-[0.8125rem]">
+                          {c.name}
+                        </span>
+                      </ChoiceCard>
+                    ))}
+                  </div>
+                  <div className="mt-4">
+                    <Combobox
+                      id={ids.clubSearch}
+                      label="¿No está tu equipo? Búscalo"
+                      placeholder="Escribe el nombre de tu equipo"
+                      emptyText="No encontramos ese equipo."
+                      options={CLUB_OPTIONS}
+                      value={clubId}
+                      onChange={(next) => {
+                        setClubId(next);
                         clearError("club");
                       }}
-                    >
-                      <ClubBadge club={c} className="size-8" />
-                      <span className="min-w-0 pr-3 text-[0.75rem] leading-tight font-semibold sm:text-[0.8125rem]">
-                        {c.name}
-                      </span>
-                    </ChoiceCard>
-                  ))}
-                </div>
-                <div className="mt-4">
-                  <Combobox
-                    id={ids.clubSearch}
-                    label="¿No está tu equipo? Búscalo"
-                    placeholder="Escribe el nombre de tu equipo"
-                    emptyText="No encontramos ese equipo."
-                    options={CLUB_OPTIONS}
-                    value={clubId}
-                    onChange={(next) => {
-                      setClubId(next);
-                      clearError("club");
-                    }}
-                  />
-                </div>
-                {errors.club && (
-                  <div className="mt-2">
-                    <FieldError id={`${ids.club}-error`}>
-                      {errors.club}
-                    </FieldError>
+                    />
                   </div>
-                )}
-              </fieldset>
-
-              {/* Repaso y envío */}
-              <div className={`mt-10 ${STACK_ONLY}`}>
-                <p className="mb-4 text-sm font-semibold text-black/80">
-                  Así quedará tu voto
-                </p>
-                {card}
-              </div>
-
-              <div className="mt-8 flex flex-col gap-4">
-                <AuthNote icon={<Lock aria-hidden="true" />}>
-                  Tu voto es único y definitivo: una vez enviado, no podrás
-                  cambiarlo.
-                </AuthNote>
-                {sendError && (
-                  <FieldError id={`${id}-envio-error`}>
-                    No pudimos registrar tu voto. Inténtalo de nuevo.
-                  </FieldError>
-                )}
-                <button
-                  type="submit"
-                  disabled={status === "sending"}
-                  className={PRIMARY_BUTTON}
-                >
-                  {status === "sending" ? (
-                    <>
-                      <Spinner />
-                      Enviando voto…
-                    </>
-                  ) : (
-                    <>
-                      <Vote aria-hidden="true" className="size-[1.125rem]" />
-                      Enviar voto
-                    </>
+                  {errors.club && (
+                    <div className="mt-2">
+                      <FieldError id={`${ids.club}-error`}>
+                        {errors.club}
+                      </FieldError>
+                    </div>
                   )}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      </section>
-    </main>
+                </fieldset>
+
+                {/* Repaso y envío */}
+                <div className={`mt-10 ${STACK_ONLY}`}>
+                  <p className="mb-4 text-sm font-semibold text-black/80">
+                    Así quedará tu voto
+                  </p>
+                  {card}
+                </div>
+
+                <div className="mt-8 flex flex-col gap-4">
+                  <AuthNote icon={<Lock aria-hidden="true" />}>
+                    Tu voto es único y definitivo: una vez enviado, no podrás
+                    cambiarlo.
+                  </AuthNote>
+                  {sendError && (
+                    <FieldError id={`${id}-envio-error`}>
+                      No pudimos registrar tu voto. Inténtalo de nuevo.
+                    </FieldError>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={status === "sending"}
+                    className={PRIMARY_BUTTON}
+                  >
+                    {status === "sending" ? (
+                      <>
+                        <Spinner />
+                        Enviando voto…
+                      </>
+                    ) : (
+                      <>
+                        <Vote aria-hidden="true" className="size-[1.125rem]" />
+                        Enviar voto
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </section>
+      </main>
+    </AccountFrame>
   );
 }
 

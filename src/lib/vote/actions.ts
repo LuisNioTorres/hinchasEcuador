@@ -14,21 +14,32 @@ export type VoteInput = {
   clubId: unknown;
 };
 
-export type VoteResult = "ok" | "ya-voto" | "sin-sesion" | "invalido" | "error";
+export type VoteResult =
+  "ok" | "ya-voto" | "sin-sesion" | "cuenta-cambio" | "invalido" | "error";
 
 /**
  * Registra el voto. La cuenta sale siempre de la sesión del servidor, nunca de lo
  * que envía el navegador. Las reglas definitivas están en la base de datos.
+ *
+ * `expectedUserId` es la cuenta que mostraba la pantalla al votar. No da permisos:
+ * si no coincide con la sesión, la cuenta cambió en otra pestaña y el voto no se
+ * registra, porque no se puede cambiar ni borrar.
  */
-export async function registerVote(input: VoteInput): Promise<VoteResult> {
-  const club = CLUBS.find((c) => c.id === input.clubId);
-  if (!club) return "invalido";
-
+export async function registerVote(
+  input: VoteInput,
+  expectedUserId: unknown,
+): Promise<VoteResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return "sin-sesion";
+  if (typeof expectedUserId !== "string" || user.id !== expectedUserId) {
+    return "cuenta-cambio";
+  }
+
+  const club = CLUBS.find((c) => c.id === input.clubId);
+  if (!club) return "invalido";
 
   const clubRow = await supabase
     .from("clubes")

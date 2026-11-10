@@ -201,3 +201,14 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/*
+ * Alto de pantalla menos la franja de cuenta (src/components/layout/account-bar.tsx).
+ * Sin franja, `--account-bar-h` no existe y equivalen a 100svh.
+ */
+@utility min-h-below-bar {
+  min-height: calc(100svh - var(--account-bar-h, 0px));
+}
+@utility h-below-bar {
+  height: calc(100svh - var(--account-bar-h, 0px));
+}

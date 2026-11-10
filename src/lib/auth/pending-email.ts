@@ -9,6 +9,15 @@ export function rememberEmail(email: string) {
   }
 }
 
+/** Al cerrar sesión, para que el siguiente acceso empiece de cero. */
+export function forgetEmail() {
+  try {
+    sessionStorage.removeItem(EMAIL_KEY);
+  } catch {
+    // Sin almacenamiento: no había nada guardado.
+  }
+}
+
 export function recallEmail(): string | null {
   try {
     return sessionStorage.getItem(EMAIL_KEY);

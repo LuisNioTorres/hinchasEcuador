@@ -150,10 +150,10 @@ No se monetiza al inicio. Opciones para cuando haya tráfico real:
 
 ## 11. Hoja de ruta hasta el lanzamiento
 
-1. ☐ Comprar `censounico.com` en Cloudflare, con renovación automática y privacidad de datos.
-2. ☐ Crear la cuenta de Resend, verificar el dominio y conectarla a Supabase como SMTP.
-3. ☐ En Supabase, activar la plantilla de correo y subir el límite de correos por hora.
-4. ☐ Probar el login por correo en el proyecto real.
+1. ☑ Comprar `censounico.com` en Cloudflare, con renovación automática y privacidad de datos. Comprado el 2026-11-09 por $11.17/año; vence el 2027-11-09.
+2. ☑ Crear la cuenta de Resend, verificar el dominio y conectarla a Supabase como SMTP. Hecho el 2026-11-09: dominio verificado en `us-east-1` (DKIM, `send`, `rsend` y DMARC `p=none`), sin seguimiento de clics ni de aperturas, API key de solo envío. Remitente: `Censo Futbolero Único del Ecuador <no-reply@censounico.com>`.
+3. ☑ En Supabase, activar la plantilla de correo y subir el límite de correos por hora. Hecho el 2026-11-09: `acceso.html` en *Magic Link* y *Confirm signup*, y 100 correos por hora.
+4. ☐ Probar el login por correo en el proyecto real. En curso: el envío, el código y el enlace funcionan, pero la prueba del 2026-11-09 encontró 6 problemas, anotados en `docs/SUPABASE_SQL.md` (*Problemas de la prueba del paso 4*).
 5. ☐ Implementar Turnstile en el voto y en la solicitud de códigos.
 6. ☐ Publicar en Vercel: variables de entorno, incluida `SUPABASE_SECRET_KEY`, y conexión del dominio.
 7. ☐ Actualizar las direcciones del sitio en Supabase y en Google Cloud con `censounico.com`.

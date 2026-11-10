@@ -26,6 +26,7 @@ import {
   OTP_LENGTH,
   RESEND_COOLDOWN_SECONDS,
 } from "@/lib/auth/routes";
+import { goOnIfSignedIn, useSessionGuard } from "@/lib/auth/use-session-guard";
 import { createClient } from "@/lib/supabase/client";
 
 const noSubscribe = () => () => {};
@@ -44,6 +45,7 @@ export function CheckEmailPanel() {
   const [verifying, setVerifying] = useState(false);
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
   const [resent, setResent] = useState(false);
+  useSessionGuard(null);
 
   const codeId = `${id}-code`;
   const errorId = `${id}-error`;
@@ -65,6 +67,7 @@ export function CheckEmailPanel() {
       return;
     }
     setVerifying(true);
+    if (await goOnIfSignedIn()) return;
     const { error: verifyError } = await createClient().auth.verifyOtp({
       email,
       token: code,
@@ -84,6 +87,7 @@ export function CheckEmailPanel() {
       return;
     }
     setResent(false);
+    if (await goOnIfSignedIn()) return;
     const { error: resendError } = await createClient().auth.signInWithOtp({
       email,
     });

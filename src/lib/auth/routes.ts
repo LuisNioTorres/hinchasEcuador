@@ -9,6 +9,8 @@ export const AUTH_ROUTES = {
   results: "/resultados",
   userInfo: "/user-info",
   callback: "/auth/callback",
+  session: "/auth/sesion",
+  signOut: "/auth/cerrar-sesion",
 } as const;
 
 /** Igual que `otp_length` y `otp_expiry` de supabase/config.toml. */

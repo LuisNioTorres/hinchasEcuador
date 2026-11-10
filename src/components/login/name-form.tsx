@@ -11,6 +11,7 @@ import {
 } from "@/components/login/auth-ui";
 import { saveName } from "@/lib/auth/actions";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
+import { flagAccountChanged } from "@/lib/auth/session-sync";
 
 /** Igual que `profiles.nombre` y `profiles.apellido`. */
 const MAX_LENGTH = 70;
@@ -44,7 +45,7 @@ const FIELDS: readonly {
 /**
  * Nombre y apellido, para quien entra con correo (Google ya los da).
  */
-export function NameForm() {
+export function NameForm({ userId }: { userId: string }) {
   const id = useId();
   const [values, setValues] = useState<Record<Field, string>>({
     firstName: "",
@@ -64,8 +65,19 @@ export function NameForm() {
     if (Object.keys(next).length > 0) return;
     setSaving(true);
     setSaveError(false);
-    const { ok } = await saveName(values.firstName, values.lastName);
-    if (!ok) {
+    let result: Awaited<ReturnType<typeof saveName>>;
+    try {
+      result = await saveName(values.firstName, values.lastName, userId);
+    } catch {
+      result = { ok: false };
+    }
+    if (result.accountChanged) {
+      // La sesión ya es de otra cuenta: se recarga para mostrarla, con un aviso.
+      flagAccountChanged();
+      window.location.reload();
+      return;
+    }
+    if (!result.ok) {
       setSaveError(true);
       setSaving(false);
       return;

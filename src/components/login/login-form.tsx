@@ -13,6 +13,7 @@ import {
 } from "@/components/login/auth-ui";
 import { rememberEmail } from "@/lib/auth/pending-email";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
+import { goOnIfSignedIn, useSessionGuard } from "@/lib/auth/use-session-guard";
 import { createClient } from "@/lib/supabase/client";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -23,6 +24,9 @@ type Pending = "google" | "email" | null;
  * Formulario de acceso: Google o correo con enlace y código, sin contraseñas
  * (docs/DATOS_INFORMATION.md, Módulo 3). El formato del correo se revisa aquí solo
  * para guiar al usuario; quien lo valida es Supabase Auth.
+ *
+ * Si el navegador ya tiene sesión (abierta en otra pestaña), no pide nada y lleva a
+ * la pantalla que le corresponde.
  */
 export function LoginForm() {
   const id = useId();
@@ -31,6 +35,7 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending>(null);
+  useSessionGuard(null);
 
   const emailId = `${id}-email`;
   const errorId = `${id}-error`;
@@ -39,6 +44,7 @@ export function LoginForm() {
   const handleGoogle = async () => {
     setPending("google");
     setGoogleError(null);
+    if (await goOnIfSignedIn()) return;
     const { error: oauthError } = await createClient().auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -59,6 +65,7 @@ export function LoginForm() {
       return;
     }
     setPending("email");
+    if (await goOnIfSignedIn()) return;
     const { error: sendError } = await createClient().auth.signInWithOtp({
       email: value,
     });

@@ -20,8 +20,9 @@ import {
 } from "@/components/login/auth-ui";
 import { ClubBadge } from "@/components/vote/club-badge";
 import { VoteBackdrop } from "@/components/vote/vote-backdrop";
-import { saveName, signOut } from "@/lib/auth/actions";
+import { saveName } from "@/lib/auth/actions";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
+import { requestSignOut } from "@/lib/auth/session-client";
 import type { Club } from "@/mocks/catalogs";
 
 /** Igual que `profiles.nombre` y `profiles.apellido`. */
@@ -134,7 +135,8 @@ export function UserInfoScreen({
 
   const handleSignOut = async () => {
     setBusy("leaving");
-    await signOut();
+    // Si no se pudo cerrar, la protección de páginas lo devuelve aquí mismo.
+    await requestSignOut();
     window.location.replace(AUTH_ROUTES.login);
   };
 

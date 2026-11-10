@@ -2,6 +2,7 @@ import "server-only";
 
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
+import type { SessionAccount } from "@/lib/auth/account";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/server";
 
@@ -34,6 +35,31 @@ export async function requireProfile() {
     firstName,
     lastName,
     fullName: `${firstName} ${lastName}`.trim(),
+  };
+}
+
+/** Cuenta de quien hizo la petición, para mostrarla; sin sesión, lo envía al login. */
+export async function requireAccount(): Promise<SessionAccount> {
+  await connection();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect(AUTH_ROUTES.login);
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("nombre, apellido")
+    .eq("id", user.id)
+    .single();
+  const fullName =
+    `${profile?.nombre ?? ""} ${profile?.apellido ?? ""}`.trim() || null;
+
+  return {
+    userId: user.id,
+    email: user.email ?? "",
+    fullName,
+    provider: user.app_metadata.provider === "google" ? "google" : "email",
   };
 }
 

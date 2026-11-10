@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { ownerAssets } from "@/config/owner-assets";
 import { LoginScene } from "@/components/login/login-scene";
+import { AccountFrame } from "@/components/layout/account-bar";
+import type { SessionAccount } from "@/lib/auth/account";
 
 /** Pantalla dividida: escenario con el saludo a la izquierda y panel a la derecha. */
 const SPLIT_MAIN =
@@ -21,10 +23,17 @@ const SPLIT_MAIN =
  * - phone: escenario compacto arriba y el panel como una hoja que sube sobre él.
  * - wide (teléfono girado): dos columnas compactas.
  */
-export function AuthShell({ children }: { children: ReactNode }) {
-  return (
+export function AuthShell({
+  account,
+  children,
+}: {
+  /** Con sesión iniciada (pantalla "tu nombre"): muestra la franja de cuenta. */
+  account?: SessionAccount;
+  children: ReactNode;
+}) {
+  const screen = (
     <main
-      className={`relative isolate flex min-h-svh flex-col bg-bone font-montserrat text-black tablet:justify-center tablet:py-20 tablet:landscape:py-0 wide:grid wide:grid-cols-2 ${SPLIT_MAIN}`}
+      className={`relative isolate flex min-h-below-bar flex-col bg-bone font-montserrat text-black tablet:justify-center tablet:py-20 tablet:landscape:py-0 wide:grid wide:grid-cols-2 ${SPLIT_MAIN}`}
     >
       <Link
         href="/"
@@ -34,7 +43,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
         <span className="max-[21.25rem]:sr-only">Volver al inicio</span>
       </Link>
 
-      <section className="relative isolate flex flex-col px-(--page-x) pt-[max(1rem,env(safe-area-inset-top))] pb-16 tablet:static tablet:mx-auto tablet:w-[min(100%-5rem,30rem)] tablet:p-0 tablet:landscape:relative tablet:landscape:mx-0 tablet:landscape:w-auto tablet:landscape:min-h-svh tablet:landscape:justify-center tablet:landscape:px-[5vw] tablet:landscape:py-24 wide:min-h-svh wide:justify-center wide:py-6 lg:min-h-svh lg:justify-center lg:px-[6vw] lg:py-16">
+      <section className="relative isolate flex flex-col px-(--page-x) pt-[max(1rem,env(safe-area-inset-top))] pb-16 tablet:static tablet:mx-auto tablet:w-[min(100%-5rem,30rem)] tablet:p-0 tablet:landscape:relative tablet:landscape:mx-0 tablet:landscape:w-auto tablet:landscape:min-h-below-bar tablet:landscape:justify-center tablet:landscape:px-[5vw] tablet:landscape:py-24 wide:min-h-below-bar wide:justify-center wide:py-6 lg:min-h-below-bar lg:justify-center lg:px-[6vw] lg:py-16">
         <LoginScene />
 
         <Link
@@ -69,6 +78,11 @@ export function AuthShell({ children }: { children: ReactNode }) {
         </div>
       </section>
     </main>
+  );
+  return account ? (
+    <AccountFrame account={account}>{screen}</AccountFrame>
+  ) : (
+    screen
   );
 }
 

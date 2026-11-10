@@ -12,11 +12,18 @@ function cleanName(value: unknown): string | null {
   return clean && clean.length <= MAX_NAME_LENGTH ? clean : null;
 }
 
-/** Cambia el nombre y el apellido. Nunca toca el voto. */
+/**
+ * Cambia el nombre y el apellido. Nunca toca el voto.
+ *
+ * `expectedUserId` es la cuenta que mostraba la pantalla. No da permisos (la cuenta
+ * sale siempre de la sesión): si no coincide, la sesión cambió en otra pestaña y no
+ * se guarda nada.
+ */
 export async function saveName(
   firstName: unknown,
   lastName: unknown,
-): Promise<{ ok: boolean }> {
+  expectedUserId?: unknown,
+): Promise<{ ok: boolean; accountChanged?: boolean }> {
   const nombre = cleanName(firstName);
   const apellido = cleanName(lastName);
   if (!nombre || !apellido) return { ok: false };
@@ -26,6 +33,9 @@ export async function saveName(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false };
+  if (expectedUserId !== undefined && user.id !== expectedUserId) {
+    return { ok: false, accountChanged: true };
+  }
 
   const { error } = await supabase
     .from("profiles")
@@ -35,10 +45,4 @@ export async function saveName(
 
   revalidatePath(AUTH_ROUTES.userInfo);
   return { ok: true };
-}
-
-/** Cierra la sesión solo en este dispositivo. */
-export async function signOut() {
-  const supabase = await createClient();
-  await supabase.auth.signOut({ scope: "local" });
 }
