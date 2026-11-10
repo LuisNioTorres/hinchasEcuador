@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useEffect,
-  useId,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useId, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Inbox, MailCheck, RotateCcw } from "lucide-react";
 import { AuthPanelHeader } from "@/components/login/auth-shell";
 import {
@@ -19,7 +13,11 @@ import {
   TEXT_LINK,
 } from "@/components/login/auth-ui";
 import { CodeInput } from "@/components/login/code-input";
-import { recallEmail } from "@/lib/auth/pending-email";
+import {
+  recallEmail,
+  recallSentAt,
+  rememberResend,
+} from "@/lib/auth/pending-email";
 import {
   AUTH_ROUTES,
   OTP_EXPIRY_MINUTES,
@@ -27,9 +25,36 @@ import {
   RESEND_COOLDOWN_SECONDS,
 } from "@/lib/auth/routes";
 import { goOnIfSignedIn, useSessionGuard } from "@/lib/auth/use-session-guard";
+import { SEND_EMAIL_TIMEOUT_MS, withTimeout } from "@/lib/auth/with-timeout";
 import { createClient } from "@/lib/supabase/client";
 
 const noSubscribe = () => () => {};
+
+/** Reloj de un tic por segundo. En el servidor no hay hora: devuelve `null`. */
+const subscribeClock = (onTick: () => void) => {
+  const timer = window.setInterval(onTick, 1000);
+  return () => window.clearInterval(timer);
+};
+const readClock = () => Math.floor(Date.now() / 1000);
+const noClock = () => null;
+
+/**
+ * Segundos que faltan para poder reenviar, contados desde la hora guardada del último
+ * envío: así el contador sigue donde iba aunque la página se recargue.
+ */
+function useResendCooldown(): number {
+  const sentAt = useSyncExternalStore(noSubscribe, recallSentAt, () => null);
+  const now = useSyncExternalStore(subscribeClock, readClock, noClock);
+  // En el servidor, el contador completo, como antes. En el navegador sin hora
+  // guardada (sin almacenamiento) no se bloquea el botón.
+  if (now === null) return RESEND_COOLDOWN_SECONDS;
+  if (sentAt === null) return 0;
+  const elapsed = now - Math.floor(sentAt / 1000);
+  return Math.min(
+    RESEND_COOLDOWN_SECONDS,
+    Math.max(0, RESEND_COOLDOWN_SECONDS - elapsed),
+  );
+}
 
 const formatSeconds = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
@@ -43,18 +68,12 @@ export function CheckEmailPanel() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
-  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
+  const cooldown = useResendCooldown();
   const [resent, setResent] = useState(false);
   useSessionGuard(null);
 
   const codeId = `${id}-code`;
   const errorId = `${id}-error`;
-
-  useEffect(() => {
-    if (cooldown === 0) return;
-    const timer = setTimeout(() => setCooldown((s) => s - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [cooldown]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -90,15 +109,16 @@ export function CheckEmailPanel() {
     }
     setResent(false);
     if (await goOnIfSignedIn()) return;
-    const { error: resendError } = await createClient().auth.signInWithOtp({
-      email,
-    });
-    if (resendError) {
+    const result = await withTimeout(
+      createClient().auth.signInWithOtp({ email }),
+      SEND_EMAIL_TIMEOUT_MS,
+    );
+    if (result === "timeout" || result.error) {
       setError("No pudimos reenviar el correo. Inténtalo más tarde.");
       return;
     }
+    rememberResend();
     setResent(true);
-    setCooldown(RESEND_COOLDOWN_SECONDS);
   };
 
   return (

@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { ArrowRight, Mail, ShieldCheck } from "lucide-react";
 import { GoogleIcon } from "@/components/login/google-icon";
 import {
@@ -14,6 +13,7 @@ import {
 import { rememberEmail } from "@/lib/auth/pending-email";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { goOnIfSignedIn, useSessionGuard } from "@/lib/auth/use-session-guard";
+import { SEND_EMAIL_TIMEOUT_MS, withTimeout } from "@/lib/auth/with-timeout";
 import { createClient } from "@/lib/supabase/client";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -30,7 +30,6 @@ type Pending = "google" | "email" | null;
  */
 export function LoginForm() {
   const id = useId();
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [googleError, setGoogleError] = useState<string | null>(null);
@@ -66,12 +65,14 @@ export function LoginForm() {
     }
     setPending("email");
     if (await goOnIfSignedIn()) return;
-    const { error: sendError } = await createClient().auth.signInWithOtp({
-      email: value,
-    });
+    const result = await withTimeout(
+      createClient().auth.signInWithOtp({ email: value }),
+      SEND_EMAIL_TIMEOUT_MS,
+    );
+    const sendError = result === "timeout" ? "timeout" : result.error;
     if (sendError) {
       setError(
-        sendError.status === 429
+        sendError !== "timeout" && sendError.status === 429
           ? "Se enviaron demasiados correos. Espera un momento e inténtalo de nuevo."
           : "No pudimos enviar el correo. Inténtalo de nuevo.",
       );
@@ -79,7 +80,10 @@ export function LoginForm() {
       return;
     }
     rememberEmail(value);
-    router.push(AUTH_ROUTES.checkEmail);
+    // Carga completa, como el resto del registro: el cambio de pantalla interno de
+    // Next.js podía quedarse sin terminar y dejar "Enviando…" girando para siempre.
+    // Así, además, `src/proxy.ts` decide de nuevo a qué pantalla ir.
+    window.location.assign(AUTH_ROUTES.checkEmail);
   };
 
   return (
