@@ -15,7 +15,7 @@ export const AUTH_ROUTES = {
 
 /** Igual que `otp_length` y `otp_expiry` de supabase/config.toml. */
 export const OTP_LENGTH = 6;
-export const OTP_EXPIRY_MINUTES = 60;
+export const OTP_EXPIRY_MINUTES = 15;
 
 /** Espera mínima antes de reenviar el correo (evita abusos). */
 export const RESEND_COOLDOWN_SECONDS = 60;

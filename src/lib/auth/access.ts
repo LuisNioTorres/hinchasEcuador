@@ -10,11 +10,14 @@ export function destinationFor(state: AccessState): string {
   return state.hasName ? AUTH_ROUTES.loggedIn : AUTH_ROUTES.name;
 }
 
-/** Quién puede ver cada página protegida, según su destino. */
+/**
+ * Quién puede ver cada página protegida, según su destino. "Enlace no válido" no está:
+ * se muestra siempre, también con una sesión abierta, para que un enlace rechazado
+ * nunca parezca haber dado acceso.
+ */
 const PAGE_AUDIENCE: Readonly<Record<string, string>> = {
   [AUTH_ROUTES.login]: AUTH_ROUTES.login,
   [AUTH_ROUTES.checkEmail]: AUTH_ROUTES.login,
-  [AUTH_ROUTES.expiredLink]: AUTH_ROUTES.login,
   [AUTH_ROUTES.name]: AUTH_ROUTES.name,
   [AUTH_ROUTES.loggedIn]: AUTH_ROUTES.loggedIn,
   [AUTH_ROUTES.results]: AUTH_ROUTES.results,

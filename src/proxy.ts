@@ -63,7 +63,6 @@ export const config = {
   matcher: [
     "/votar",
     "/votar/revisa-tu-correo",
-    "/votar/enlace-vencido",
     "/votar/tu-nombre",
     "/cuenta",
     "/resultados",

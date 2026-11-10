@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { AuthPanelHeader } from "@/components/login/auth-shell";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
@@ -13,7 +12,6 @@ import { createClient } from "@/lib/supabase/client";
  * venció o ya se usó, pasa a "Enlace no válido".
  */
 export function ConfirmPanel() {
-  const router = useRouter();
   const started = useRef(false);
 
   useEffect(() => {
@@ -23,17 +21,20 @@ export function ConfirmPanel() {
     const tokenHash = new URLSearchParams(window.location.search).get(
       "token_hash",
     );
+    // Navegación completa: no depende del router del navegador.
     if (!tokenHash) {
-      router.replace(AUTH_ROUTES.expiredLink);
+      window.location.replace(AUTH_ROUTES.expiredLink);
       return;
     }
     createClient()
       .auth.verifyOtp({ token_hash: tokenHash, type: "email" })
       .then(({ error }) => {
-        if (error) router.replace(AUTH_ROUTES.expiredLink);
-        else window.location.assign(AUTH_ROUTES.login);
-      });
-  }, [router]);
+        window.location.replace(
+          error ? AUTH_ROUTES.expiredLink : AUTH_ROUTES.login,
+        );
+      })
+      .catch(() => window.location.replace(AUTH_ROUTES.expiredLink));
+  }, []);
 
   return (
     <div role="status">

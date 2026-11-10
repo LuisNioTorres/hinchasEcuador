@@ -157,7 +157,7 @@ No se monetiza al inicio. Opciones para cuando haya tráfico real:
 5. ☐ Implementar Turnstile en el voto y en la solicitud de códigos.
 6. ☐ Publicar en Vercel: variables de entorno, incluida `SUPABASE_SECRET_KEY`, y conexión del dominio.
 7. ☐ Actualizar las direcciones del sitio en Supabase y en Google Cloud con `censounico.com`.
-8. ☐ Publicar la app de Google, para que entre cualquier persona y no solo los usuarios de prueba.
+8. ☐ Publicar la app de Google, para que entre cualquier persona y no solo los usuarios de prueba. Revisar también el nombre y el logo de la pantalla de consentimiento: al 2026-11-10, la ventana de Google muestra "Ir a lsyrovxrecympvnfpjgj.supabase.co" en vez de "Censo Único del Ecuador". Un dominio propio para Supabase (p. ej. `auth.censounico.com`) es de pago: evaluarlo contra el tope de $15–20/mes.
 9. ☐ Revisión con un abogado: borrado de datos y acceso de administradores a los votos.
 10. ☐ Quitar las rutas `/simulacion` y dejar la base sin datos de prueba.
 11. ☐ Revisión visual completa del dueño y sus correcciones de frontend.

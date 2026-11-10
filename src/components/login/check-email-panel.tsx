@@ -8,7 +8,7 @@ import {
   useSyncExternalStore,
   type FormEvent,
 } from "react";
-import { Inbox, MailCheck } from "lucide-react";
+import { Inbox, MailCheck, RotateCcw } from "lucide-react";
 import { AuthPanelHeader } from "@/components/login/auth-shell";
 import {
   AuthNote,
@@ -74,7 +74,9 @@ export function CheckEmailPanel() {
       type: "email",
     });
     if (verifyError) {
-      setError("El código no es válido o ya venció.");
+      setError(
+        "El código no es válido o ya venció. Si pediste más de un correo, usa el código del más reciente.",
+      );
       setVerifying(false);
       return;
     }
@@ -174,6 +176,10 @@ export function CheckEmailPanel() {
         <AuthNote icon={<Inbox aria-hidden="true" />}>
           Si no lo ves, revisa tu carpeta de spam o correo no deseado. El enlace
           y el código vencen en {OTP_EXPIRY_MINUTES} minutos.
+        </AuthNote>
+        <AuthNote icon={<RotateCcw aria-hidden="true" />}>
+          Si pides otro correo, usa siempre el más reciente: los anteriores
+          dejan de funcionar.
         </AuthNote>
       </div>
     </>
