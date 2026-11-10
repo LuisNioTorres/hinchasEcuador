@@ -5,6 +5,7 @@ import { RESULTS_CACHE_TAG } from "@/lib/results/tag";
 import { CANTONS, CLUBS, CONTINENTS, PROVINCES } from "@/mocks/catalogs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { verifyTurnstile } from "@/lib/security/turnstile";
 
 export type VoteInput = {
   scope: unknown;
@@ -15,7 +16,13 @@ export type VoteInput = {
 };
 
 export type VoteResult =
-  "ok" | "ya-voto" | "sin-sesion" | "cuenta-cambio" | "invalido" | "error";
+  | "ok"
+  | "ya-voto"
+  | "sin-sesion"
+  | "cuenta-cambio"
+  | "robot"
+  | "invalido"
+  | "error";
 
 /**
  * Registra el voto. La cuenta sale siempre de la sesión del servidor, nunca de lo
@@ -24,10 +31,13 @@ export type VoteResult =
  * `expectedUserId` es la cuenta que mostraba la pantalla al votar. No da permisos:
  * si no coincide con la sesión, la cuenta cambió en otra pestaña y el voto no se
  * registra, porque no se puede cambiar ni borrar.
+ *
+ * `captchaToken` es el comprobante de Turnstile: sin uno válido no se vota.
  */
 export async function registerVote(
   input: VoteInput,
   expectedUserId: unknown,
+  captchaToken: unknown,
 ): Promise<VoteResult> {
   const supabase = await createClient();
   const {
@@ -37,6 +47,7 @@ export async function registerVote(
   if (typeof expectedUserId !== "string" || user.id !== expectedUserId) {
     return "cuenta-cambio";
   }
+  if (!(await verifyTurnstile(captchaToken))) return "robot";
 
   const club = CLUBS.find((c) => c.id === input.clubId);
   if (!club) return "invalido";

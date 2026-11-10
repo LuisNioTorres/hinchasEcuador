@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   useId,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
   type ReactNode,
@@ -35,6 +36,8 @@ import type { SessionAccount } from "@/lib/auth/account";
 import { flagAccountChanged } from "@/lib/auth/session-sync";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { registerVote } from "@/lib/vote/actions";
+import { CaptchaHint } from "@/components/security/captcha-hint";
+import { CAPTCHA_TEXT, useTurnstile } from "@/lib/security/use-turnstile";
 import { CANTONS, CLUBS, CONTINENTS, PROVINCES } from "@/mocks/catalogs";
 
 const byName = <T extends { name: string }>(a: T, b: T) =>
@@ -98,7 +101,19 @@ export function VoteScreen({
   const [status, setStatus] = useState<"editing" | "sending" | "sent">(
     "editing",
   );
-  const [sendError, setSendError] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  /** Evita votos duplicados mientras hay un envío en curso. */
+  const busyRef = useRef(false);
+  const {
+    containerRef: turnstileRef,
+    check: checkCaptcha,
+    awaiting: captchaAwaiting,
+    visible: captchaVisible,
+  } = useTurnstile({
+    // Al marcar la casilla, el voto se envía solo con lo elegido en ese momento.
+    onResume: () => formRef.current?.requestSubmit(),
+  });
 
   const ids = {
     province: `${id}-provincia`,
@@ -153,13 +168,27 @@ export function VoteScreen({
       target?.focus();
       return;
     }
+    if (busyRef.current) return;
+    busyRef.current = true;
     setStatus("sending");
-    setSendError(false);
+    setSendError(null);
+    const captcha = await checkCaptcha();
+    if (!captcha.ok) {
+      // Si la casilla espera, el botón vuelve a la normalidad y se muestra el aviso.
+      if (captcha.reason !== "checkbox") {
+        setSendError(CAPTCHA_TEXT[captcha.reason]);
+      }
+      setStatus("editing");
+      busyRef.current = false;
+      return;
+    }
+    const captchaToken = captcha.token;
     let result;
     try {
       result = await registerVote(
         { scope, provinceId, cantonId, continentId, clubId },
         account.userId,
+        captchaToken,
       );
     } catch {
       result = "error" as const;
@@ -177,8 +206,13 @@ export function VoteScreen({
       return;
     }
     if (result !== "ok") {
-      setSendError(true);
+      setSendError(
+        result === "robot"
+          ? CAPTCHA_TEXT.robot
+          : "No pudimos registrar tu voto. Inténtalo de nuevo.",
+      );
       setStatus("editing");
+      busyRef.current = false;
       return;
     }
     setStatus("sent");
@@ -249,7 +283,7 @@ export function VoteScreen({
             {status === "sent" ? (
               <Success card={card} />
             ) : (
-              <form noValidate onSubmit={handleSubmit}>
+              <form ref={formRef} noValidate onSubmit={handleSubmit}>
                 <AuthPanelHeader title="Registra tu voto">
                   <p>Solo te tomará un minuto.</p>
                 </AuthPanelHeader>
@@ -415,26 +449,38 @@ export function VoteScreen({
                   </AuthNote>
                   {sendError && (
                     <FieldError id={`${id}-envio-error`}>
-                      No pudimos registrar tu voto. Inténtalo de nuevo.
+                      {sendError}
                     </FieldError>
                   )}
-                  <button
-                    type="submit"
-                    disabled={status === "sending"}
-                    className={PRIMARY_BUTTON}
-                  >
-                    {status === "sending" ? (
-                      <>
-                        <Spinner />
-                        Enviando voto…
-                      </>
-                    ) : (
-                      <>
-                        <Vote aria-hidden="true" className="size-[1.125rem]" />
-                        Enviar voto
-                      </>
-                    )}
-                  </button>
+                  {/* Sin separación propia: la casilla solo ocupa espacio cuando aparece. */}
+                  <div className="flex flex-col">
+                    <button
+                      type="submit"
+                      disabled={status === "sending"}
+                      className={PRIMARY_BUTTON}
+                    >
+                      {status === "sending" ? (
+                        <>
+                          <Spinner />
+                          Enviando voto…
+                        </>
+                      ) : (
+                        <>
+                          <Vote
+                            aria-hidden="true"
+                            className="size-[1.125rem]"
+                          />
+                          Enviar voto
+                        </>
+                      )}
+                    </button>
+                    <CaptchaHint show={captchaAwaiting} />
+                    {/* Solo se ve si Cloudflare pide marcar la casilla. */}
+                    <div
+                      ref={turnstileRef}
+                      className={captchaVisible ? "mt-4" : undefined}
+                    />
+                  </div>
                 </div>
               </form>
             )}

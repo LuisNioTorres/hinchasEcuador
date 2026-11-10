@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState, useSyncExternalStore, type FormEvent } from "react";
+import {
+  useId,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from "react";
 import { Inbox, MailCheck, RotateCcw } from "lucide-react";
 import { AuthPanelHeader } from "@/components/login/auth-shell";
 import {
@@ -26,6 +32,8 @@ import {
 } from "@/lib/auth/routes";
 import { goOnIfSignedIn, useSessionGuard } from "@/lib/auth/use-session-guard";
 import { SEND_EMAIL_TIMEOUT_MS, withTimeout } from "@/lib/auth/with-timeout";
+import { CaptchaHint } from "@/components/security/captcha-hint";
+import { CAPTCHA_TEXT, useTurnstile } from "@/lib/security/use-turnstile";
 import { createClient } from "@/lib/supabase/client";
 
 const noSubscribe = () => () => {};
@@ -71,6 +79,20 @@ export function CheckEmailPanel() {
   const cooldown = useResendCooldown();
   const [resent, setResent] = useState(false);
   useSessionGuard(null);
+  const [resending, setResending] = useState(false);
+  const resendRef = useRef<HTMLButtonElement>(null);
+  /** Evita reenvíos duplicados mientras hay uno en curso. */
+  const resendBusyRef = useRef(false);
+  const {
+    containerRef: turnstileRef,
+    check: checkCaptcha,
+    awaiting: captchaAwaiting,
+    visible: captchaVisible,
+  } = useTurnstile({
+    onDemand: true,
+    // Al marcar la casilla, el reenvío sigue solo.
+    onResume: () => resendRef.current?.click(),
+  });
 
   const codeId = `${id}-code`;
   const errorId = `${id}-error`;
@@ -107,17 +129,39 @@ export function CheckEmailPanel() {
       setError("Vuelve al inicio y pide un correo nuevo.");
       return;
     }
+    if (resendBusyRef.current) return;
+    resendBusyRef.current = true;
+    const stop = (message: string | null) => {
+      if (message) setError(message);
+      setResending(false);
+      resendBusyRef.current = false;
+    };
     setResent(false);
+    setError(null);
+    setResending(true);
     if (await goOnIfSignedIn()) return;
+    const captcha = await checkCaptcha();
+    if (!captcha.ok) {
+      stop(captcha.reason === "checkbox" ? null : CAPTCHA_TEXT[captcha.reason]);
+      return;
+    }
     const result = await withTimeout(
-      createClient().auth.signInWithOtp({ email }),
+      createClient().auth.signInWithOtp({
+        email,
+        options: { captchaToken: captcha.token },
+      }),
       SEND_EMAIL_TIMEOUT_MS,
     );
+    if (result !== "timeout" && result.error?.code === "captcha_failed") {
+      stop(CAPTCHA_TEXT.robot);
+      return;
+    }
     if (result === "timeout" || result.error) {
-      setError("No pudimos reenviar el correo. Inténtalo más tarde.");
+      stop("No pudimos reenviar el correo. Inténtalo más tarde.");
       return;
     }
     rememberResend();
+    stop(null);
     setResent(true);
   };
 
@@ -174,20 +218,26 @@ export function CheckEmailPanel() {
         <p className="text-black/60">
           ¿No te llegó?{" "}
           <button
+            ref={resendRef}
             type="button"
             onClick={handleResend}
-            disabled={cooldown > 0}
+            disabled={cooldown > 0 || resending}
             className={TEXT_LINK}
           >
             {cooldown > 0
               ? `Reenviar en ${formatSeconds(cooldown)}`
-              : "Reenviar correo"}
+              : resending
+                ? "Reenviando…"
+                : "Reenviar correo"}
           </button>
         </p>
         <Link href={AUTH_ROUTES.login} className={TEXT_LINK}>
           Usar otro correo
         </Link>
       </div>
+      <CaptchaHint show={captchaAwaiting} />
+      {/* Solo se ve si Cloudflare pide marcar la casilla al reenviar. */}
+      <div ref={turnstileRef} className={captchaVisible ? "mt-3" : undefined} />
       <p role="status" className="mt-2 text-sm text-[#1f7a3a] empty:hidden">
         {resent ? "Te enviamos un nuevo correo." : ""}
       </p>

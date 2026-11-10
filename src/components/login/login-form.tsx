@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useId, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, Mail, ShieldCheck } from "lucide-react";
 import { GoogleIcon } from "@/components/login/google-icon";
 import {
@@ -14,6 +14,8 @@ import { rememberEmail } from "@/lib/auth/pending-email";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { goOnIfSignedIn, useSessionGuard } from "@/lib/auth/use-session-guard";
 import { SEND_EMAIL_TIMEOUT_MS, withTimeout } from "@/lib/auth/with-timeout";
+import { CaptchaHint } from "@/components/security/captcha-hint";
+import { CAPTCHA_TEXT, useTurnstile } from "@/lib/security/use-turnstile";
 import { createClient } from "@/lib/supabase/client";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -35,6 +37,18 @@ export function LoginForm() {
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending>(null);
   useSessionGuard(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  /** Evita envíos duplicados mientras hay uno en curso. */
+  const busyRef = useRef(false);
+  const {
+    containerRef: turnstileRef,
+    check: checkCaptcha,
+    awaiting: captchaAwaiting,
+    visible: captchaVisible,
+  } = useTurnstile({
+    // Al marcar la casilla, el envío sigue solo con el correo escrito en ese momento.
+    onResume: () => formRef.current?.requestSubmit(),
+  });
 
   const emailId = `${id}-email`;
   const errorId = `${id}-error`;
@@ -63,20 +77,41 @@ export function LoginForm() {
       setError("Ingresa un correo válido.");
       return;
     }
+    if (busyRef.current) return;
+    busyRef.current = true;
+    const stop = (message: string | null) => {
+      if (message) setError(message);
+      setPending(null);
+      busyRef.current = false;
+    };
+    setError(null);
     setPending("email");
     if (await goOnIfSignedIn()) return;
+    const captcha = await checkCaptcha();
+    if (!captcha.ok) {
+      // Si la casilla espera, el botón vuelve a la normalidad y se muestra el aviso.
+      stop(captcha.reason === "checkbox" ? null : CAPTCHA_TEXT[captcha.reason]);
+      return;
+    }
+    const captchaToken = captcha.token;
     const result = await withTimeout(
-      createClient().auth.signInWithOtp({ email: value }),
+      createClient().auth.signInWithOtp({
+        email: value,
+        options: { captchaToken },
+      }),
       SEND_EMAIL_TIMEOUT_MS,
     );
     const sendError = result === "timeout" ? "timeout" : result.error;
     if (sendError) {
-      setError(
-        sendError !== "timeout" && sendError.status === 429
-          ? "Se enviaron demasiados correos. Espera un momento e inténtalo de nuevo."
-          : "No pudimos enviar el correo. Inténtalo de nuevo.",
+      stop(
+        sendError === "timeout"
+          ? "No pudimos enviar el correo. Inténtalo de nuevo."
+          : sendError.code === "captcha_failed"
+            ? CAPTCHA_TEXT.robot
+            : sendError.status === 429
+              ? "Se enviaron demasiados correos. Espera un momento e inténtalo de nuevo."
+              : "No pudimos enviar el correo. Inténtalo de nuevo.",
       );
-      setPending(null);
       return;
     }
     rememberEmail(value);
@@ -108,7 +143,12 @@ export function LoginForm() {
         <span className="h-px flex-1 bg-black/10" />
       </div>
 
-      <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <form
+        ref={formRef}
+        noValidate
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-3"
+      >
         <label
           htmlFor={emailId}
           className="text-sm font-semibold text-black/80"
@@ -143,26 +183,35 @@ export function LoginForm() {
           />
         </div>
         {error && <FieldError id={errorId}>{error}</FieldError>}
-        <button
-          type="submit"
-          disabled={pending !== null}
-          className={`mt-1 ${PRIMARY_BUTTON}`}
-        >
-          {pending === "email" ? (
-            <>
-              <Spinner />
-              Enviando…
-            </>
-          ) : (
-            <>
-              Continuar con correo
-              <ArrowRight
-                aria-hidden="true"
-                className="size-[1.125rem] transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
-              />
-            </>
-          )}
-        </button>
+        {/* Sin separación propia: la casilla solo ocupa espacio cuando aparece. */}
+        <div className="mt-1 flex flex-col">
+          <button
+            type="submit"
+            disabled={pending !== null}
+            className={PRIMARY_BUTTON}
+          >
+            {pending === "email" ? (
+              <>
+                <Spinner />
+                Enviando…
+              </>
+            ) : (
+              <>
+                Continuar con correo
+                <ArrowRight
+                  aria-hidden="true"
+                  className="size-[1.125rem] transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
+                />
+              </>
+            )}
+          </button>
+          <CaptchaHint show={captchaAwaiting} />
+          {/* Solo se ve si Cloudflare pide marcar la casilla. */}
+          <div
+            ref={turnstileRef}
+            className={captchaVisible ? "mt-3" : undefined}
+          />
+        </div>
       </form>
 
       <AuthNote id={hintId} icon={<ShieldCheck aria-hidden="true" />}>
