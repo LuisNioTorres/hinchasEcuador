@@ -53,6 +53,7 @@ Confirmado en el proyecto real el 2026-11-06: PostgreSQL 17.11, Data API respond
 | 17 | Clubes sin votos (2026-11-09) | No aparecen en rankings ni clasificaciones: las vistas solo entregan clubes con al menos un voto. |
 | 18 | Total Internacional (2026-11-09) | Es la suma por club de `vista_ranking_continental`, calculada en la aplicación. No hay sexta vista. |
 | 16 | ID DEL HINCHA (2026-11-09) | Es el número de orden del voto en el censo y lo asigna la base de datos al registrar el voto. No se puede editar. El identificador interno de la cuenta (UUID) sigue existiendo, pero no se muestra. |
+| 19 | Correos temporales (2026-11-10) | Se rechazan las cuentas nuevas con dominios de correo temporal, con un hook *Before User Created* de Supabase Auth (plan Free). La lista es una versión fija y revisada de *disposable-email-domains* (CC0), guardada en la migración; no se consulta internet al funcionar. Los dominios `.ec` de la lista que no se pudieron confirmar (`rma.ec`, `tic.ec`) quedan como excepciones. Texto para el usuario: "Ese correo es temporal y no se puede usar para votar. Usa tu correo personal." |
 
 ## Riesgos abiertos de la auditoría (2026-11-06)
 
@@ -132,9 +133,19 @@ Probada en Docker local el 2026-11-09, sin tocar el proyecto real: 77 de 77 prue
 - [ ] `SUPABASE_SECRET_KEY` en Vercel
 - [x] Plantilla `supabase/templates/acceso.html` en el panel (Magic Link y Confirm signup, 2026-11-09)
 - [x] SMTP propio con Resend y límite de 100 correos por hora (2026-11-09)
-- [ ] Corregir los problemas de la prueba del paso 4 (ver abajo)
+- [x] Corregir los problemas de la prueba del paso 4 (ver abajo; el 5, correo en spam, se revisa en la prueba final)
 - [ ] URLs del sitio y de redirección en el panel
 - [ ] Google activado y probado de punta a punta
+
+### Bloqueo de correos temporales (paso 6 del plan, 2026-11-10)
+Migración `20261110120000_bloquear_correos_desechables.sql` (decisión 19). Crea el esquema `acceso`, fuera de la API pública, con `dominios_desechables` (10 181 dominios del commit `ba992a0` de *disposable-email-domains*), `dominios_permitidos` (excepciones con motivo) y la función `acceso.rechazar_correo_desechable`, que solo puede ejecutar y leer `supabase_auth_admin`. Revisa también los dominios padre (`abc.mailinator.com` cae por `mailinator.com`). Si rechaza, la app recibe `403` con el mensaje `correo-desechable` y muestra el texto aprobado (`src/components/login/login-form.tsx`). En local se activa en `supabase/config.toml` (`[auth.hook.before_user_created]`): tras cambiarlo hay que reiniciar con `supabase stop` y `supabase start`, porque `db reset` no recarga la configuración de Auth.
+
+- [x] Lista revisada antes de cargarla: formato, duplicados, sin proveedores legítimos y dominios `.ec`
+- [x] Probada en Docker local: 24 de 24 pruebas (`supabase/tests/correos-desechables.mjs`), incluido el recorrido de Auth (un correo temporal no crea la cuenta; Gmail sí)
+- [x] Pantalla de inicio de sesión probada contra Supabase local: muestra el texto aprobado con un correo temporal y pasa a "Revisa tu correo" con Gmail
+- [x] Migración aplicada en el proyecto real (2026-11-10, `npx supabase db push --remote`)
+- [x] Hook activado en el panel (Authentication → Hooks → Before User Created → Postgres, esquema `acceso`, función `rechazar_correo_desechable`), 2026-11-10
+- [x] Prueba del dueño en el proyecto real (2026-11-10): un correo temporal nuevo se rechaza con el texto aprobado y su correo entra normal. La cuenta `prueba@mailinator.com`, creada antes de activar el hook, se borró (no había votado; los buzones de mailinator son públicos). Una consulta de solo lectura confirmó que no queda ninguna otra cuenta con dominio temporal.
 
 ### Problemas de la prueba del paso 4 (2026-11-09)
 Prueba con la app en `localhost` conectada al proyecto real, correo Hotmail en incógnito y la cuenta de Google abierta en la ventana normal. Sin votar. No se cambió código: falta que el dueño apruebe cada solución.

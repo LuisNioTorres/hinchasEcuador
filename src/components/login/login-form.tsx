@@ -20,6 +20,15 @@ import { createClient } from "@/lib/supabase/client";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+/**
+ * Mensaje con el que Supabase rechaza un correo temporal (regla de la base de datos,
+ * `supabase/migrations/20261110120000_bloquear_correos_desechables.sql`).
+ */
+const DISPOSABLE_EMAIL_ERROR = "correo-desechable";
+/** Texto aprobado por el dueño el 2026-11-10. */
+const DISPOSABLE_EMAIL_TEXT =
+  "Ese correo es temporal y no se puede usar para votar. Usa tu correo personal.";
+
 type Pending = "google" | "email" | null;
 
 /**
@@ -106,11 +115,13 @@ export function LoginForm() {
       stop(
         sendError === "timeout"
           ? "No pudimos enviar el correo. Inténtalo de nuevo."
-          : sendError.code === "captcha_failed"
-            ? CAPTCHA_TEXT.robot
-            : sendError.status === 429
-              ? "Se enviaron demasiados correos. Espera un momento e inténtalo de nuevo."
-              : "No pudimos enviar el correo. Inténtalo de nuevo.",
+          : sendError.message === DISPOSABLE_EMAIL_ERROR
+            ? DISPOSABLE_EMAIL_TEXT
+            : sendError.code === "captcha_failed"
+              ? CAPTCHA_TEXT.robot
+              : sendError.status === 429
+                ? "Se enviaron demasiados correos. Espera un momento e inténtalo de nuevo."
+                : "No pudimos enviar el correo. Inténtalo de nuevo.",
       );
       return;
     }
