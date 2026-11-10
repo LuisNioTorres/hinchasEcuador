@@ -83,7 +83,9 @@ Con este volumen, el riesgo no es la potencia sino los **cupos de los planes gra
 2. Límite de correos de Supabase ajustado a 100 por hora (*Authentication → Rate Limits*), gratis.
 3. Primera copia de seguridad manual (sección 8).
 
-**Puede esperar:** bloquear correos desechables, la protección avanzada de Cloudflare y las copias automáticas de Supabase Pro.
+**Antes del lanzamiento (agregado el 2026-11-10):** bloquear correos desechables (paso 6 de la sección 11).
+
+**Puede esperar:** la protección avanzada de Cloudflare y las copias automáticas de Supabase Pro.
 
 **Riesgo aceptado:** una persona con varios correos puede votar varias veces. Impedirlo exigiría cédula u otro dato personal, y eso va contra la regla de pedir datos mínimos. Turnstile frena el abuso automático, no a una persona real con varias cuentas.
 
@@ -153,16 +155,17 @@ No se monetiza al inicio. Opciones para cuando haya tráfico real:
 1. ☑ Comprar `censounico.com` en Cloudflare, con renovación automática y privacidad de datos. Comprado el 2026-11-09 por $11.17/año; vence el 2027-11-09.
 2. ☑ Crear la cuenta de Resend, verificar el dominio y conectarla a Supabase como SMTP. Hecho el 2026-11-09: dominio verificado en `us-east-1` (DKIM, `send`, `rsend` y DMARC `p=none`), sin seguimiento de clics ni de aperturas, API key de solo envío. Remitente: `Censo Futbolero Único del Ecuador <no-reply@censounico.com>`.
 3. ☑ En Supabase, activar la plantilla de correo y subir el límite de correos por hora. Hecho el 2026-11-09: `acceso.html` en *Magic Link* y *Confirm signup*, y 100 correos por hora.
-4. ☑ Probar el login por correo en el proyecto real. Terminado el 2026-11-10: la prueba del 2026-11-09 encontró 6 problemas, anotados en `docs/SUPABASE_SQL.md` (*Problemas de la prueba del paso 4*). Los problemas 1, 2, 3, 4 y 6 quedaron resueltos y probados por el dueño. El 5 (correo en spam) se revisa en el paso 13.
+4. ☑ Probar el login por correo en el proyecto real. Terminado el 2026-11-10: la prueba del 2026-11-09 encontró 6 problemas, anotados en `docs/SUPABASE_SQL.md` (*Problemas de la prueba del paso 4*). Los problemas 1, 2, 3, 4 y 6 quedaron resueltos y probados por el dueño. El 5 (correo en spam) se revisa en el paso 14.
 5. ☑ Implementar Turnstile en el voto y en la solicitud de códigos. Terminado el 2026-11-10. Modo "solo cuando haga falta": si Cloudflare aprueba solo no se ve nada; si pide la casilla, aparece "Un paso más: marca la casilla de abajo para continuar." y, al marcarla, la acción sigue sola, sin límite de tiempo. Avisos: "No pudimos comprobar que no eres un robot. Inténtalo de nuevo." (aprobado por el dueño) y "No pudimos conectar. Revisa tu conexión a internet e inténtalo de nuevo." (solo si Cloudflare no responde en 30 s). En "Revisa tu correo" la comprobación corre solo al pulsar "Reenviar". Al pedir y reenviar el correo valida Supabase (*Attack Protection*; según el código de Supabase Auth solo `/otp` lo exige, no la verificación del código, el enlace ni Google); al votar valida el servidor (`src/lib/security/turnstile.ts`) con `TURNSTILE_SECRET_KEY`, y si Cloudflare no responde rechaza. Widget real con dominios `censounico.com` y `localhost` (sin `localhost` sale el error 110200). Probado por el dueño con claves reales: correo y código en incógnito sin casilla, reenvío con casilla, Google y voto rechazado con la clave secreta de prueba `2x…`. La casilla aparecía en su navegador normal (muchas pruebas, extensiones, modo desarrollo) y no en incógnito; revisar en las estadísticas de Turnstile qué porcentaje la ve después de publicar, y mantener el modo *Managed* salvo que los datos digan otra cosa. La clave secreta se rotó el 2026-11-10 porque quedó expuesta en una sesión de trabajo; la nueva está en `.env.local` y en Supabase. Los avisos de consola de `flexible?lang=es` (CSP `data:,`, WOFF) son internos de Cloudflare.
-6. ☐ Publicar en Vercel: variables de entorno, incluidas `SUPABASE_SECRET_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` y `TURNSTILE_SECRET_KEY`, y conexión del dominio.
-7. ☐ Actualizar las direcciones del sitio en Supabase y en Google Cloud con `censounico.com`.
-8. ☐ Publicar la app de Google, para que entre cualquier persona y no solo los usuarios de prueba. Revisar también el nombre y el logo de la pantalla de consentimiento: al 2026-11-10, la ventana de Google muestra "Ir a lsyrovxrecympvnfpjgj.supabase.co" en vez de "Censo Único del Ecuador". Un dominio propio para Supabase (p. ej. `auth.censounico.com`) es de pago: evaluarlo contra el tope de $15–20/mes.
-9. ☐ Revisión con un abogado: borrado de datos y acceso de administradores a los votos.
-10. ☐ Quitar las rutas `/simulacion` y dejar la base sin datos de prueba.
-11. ☐ Revisión visual completa del dueño y sus correcciones de frontend.
-12. ☐ Pruebas automáticas de las reglas críticas (aprobado por el dueño el 2026-11-10): un conjunto pequeño con Vitest, solo para desarrollo, que compruebe quién puede ver cada página, que no se pueda votar dos veces y que se rechace el voto si la cuenta cambió. Sin pruebas de estrés ni Kafka: con 300–500 personas no hacen falta (sección 4).
-13. ☐ Prueba final completa en `censounico.com`, con un voto real.
-14. ☐ Primera copia de seguridad.
-15. ☐ Registrar el sitio en Google Search Console.
-16. ☐ Lanzamiento y promoción en redes, vigilando la sección 6.
+6. ☐ Bloquear correos desechables (aprobado por el dueño el 2026-11-10): una regla en Supabase (hook *Before User Created*; confirmar al implementarlo que está en el plan gratis) que rechaza crear cuentas con dominios de correo temporal conocidos, para que una sola persona no pueda sumar decenas de votos con correos que se crean en segundos. Va antes de publicar para que el sitio salga protegido; se prueba en `localhost` porque usa el mismo proyecto de Supabase. Requiere aprobar el cambio en la base de datos y el texto de error. Ninguna lista es completa: sube el costo del abuso, no lo elimina.
+7. ☐ Publicar en Vercel: variables de entorno, incluidas `SUPABASE_SECRET_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` y `TURNSTILE_SECRET_KEY`, y conexión del dominio.
+8. ☐ Actualizar las direcciones del sitio en Supabase y en Google Cloud con `censounico.com`.
+9. ☐ Publicar la app de Google, para que entre cualquier persona y no solo los usuarios de prueba. Revisar también el nombre y el logo de la pantalla de consentimiento: al 2026-11-10, la ventana de Google muestra "Ir a lsyrovxrecympvnfpjgj.supabase.co" en vez de "Censo Único del Ecuador". Un dominio propio para Supabase (p. ej. `auth.censounico.com`) es de pago: evaluarlo contra el tope de $15–20/mes.
+10. ☐ Revisión con un abogado: borrado de datos y acceso de administradores a los votos.
+11. ☐ Quitar las rutas `/simulacion` y dejar la base sin datos de prueba.
+12. ☐ Revisión visual completa del dueño y sus correcciones de frontend.
+13. ☐ Pruebas automáticas de las reglas críticas (aprobado por el dueño el 2026-11-10): un conjunto pequeño con Vitest, solo para desarrollo, que compruebe quién puede ver cada página, que no se pueda votar dos veces y que se rechace el voto si la cuenta cambió. Sin pruebas de estrés ni Kafka: con 300–500 personas no hacen falta (sección 4).
+14. ☐ Prueba final completa en `censounico.com`, con un voto real.
+15. ☐ Primera copia de seguridad.
+16. ☐ Registrar el sitio en Google Search Console.
+17. ☐ Lanzamiento y promoción en redes, vigilando la sección 6.
