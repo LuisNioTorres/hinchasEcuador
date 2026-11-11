@@ -1,11 +1,13 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { cookies } from "next/headers";
 import { RESULTS_CACHE_TAG } from "@/lib/results/tag";
 import { CANTONS, CLUBS, CONTINENTS, PROVINCES } from "@/mocks/catalogs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { verifyTurnstile } from "@/lib/security/turnstile";
+import { PRELAUNCH_COOKIE, hasPrelaunchAccess } from "@/lib/prelaunch";
 
 export type VoteInput = {
   scope: unknown;
@@ -21,6 +23,7 @@ export type VoteResult =
   | "sin-sesion"
   | "cuenta-cambio"
   | "robot"
+  | "cerrado"
   | "invalido"
   | "error";
 
@@ -33,12 +36,19 @@ export type VoteResult =
  * registra, porque no se puede cambiar ni borrar.
  *
  * `captchaToken` es el comprobante de Turnstile: sin uno válido no se vota.
+ *
+ * Antes del lanzamiento solo vota quien tiene el acceso del dueño (`cerrado` si no).
+ * El proxy ya rechaza esos envíos; esto es un segundo candado.
  */
 export async function registerVote(
   input: VoteInput,
   expectedUserId: unknown,
   captchaToken: unknown,
 ): Promise<VoteResult> {
+  const cookieStore = await cookies();
+  if (!(await hasPrelaunchAccess(cookieStore.get(PRELAUNCH_COOKIE)?.value))) {
+    return "cerrado";
+  }
   const supabase = await createClient();
   const {
     data: { user },
