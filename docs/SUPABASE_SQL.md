@@ -130,7 +130,7 @@ Probada en Docker local el 2026-11-09, sin tocar el proyecto real: 77 de 77 prue
 - [x] Bloqueo del cambio de correo (riesgo de la fase Login)
 - [x] Migración aplicada en el proyecto real (2026-11-09; el asesor avisa que `mi_voto` es ejecutable por usuarios con sesión, y es intencional)
 - [x] `SUPABASE_SECRET_KEY` en `.env.local`
-- [ ] `SUPABASE_SECRET_KEY` en Vercel
+- [x] `SUPABASE_SECRET_KEY` en Vercel (2026-11-10; clave secreta aparte llamada `vercel`, distinta de la de `.env.local`)
 - [x] Plantilla `supabase/templates/acceso.html` en el panel (Magic Link y Confirm signup, 2026-11-09)
 - [x] SMTP propio con Resend y límite de 100 correos por hora (2026-11-09)
 - [x] Corregir los problemas de la prueba del paso 4 (ver abajo; el 5, correo en spam, se revisa en la prueba final)
