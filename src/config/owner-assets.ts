@@ -16,14 +16,17 @@ export interface OwnerAsset {
 
 export const ownerAssets = {
   /**
-   * Logo TEMPORAL de la empresa (header). PNG con fondo transparente;
-   * el dibujo ocupa x 72–1130, y 22–648 del lienzo de 1200x675.
+   * Logo TEMPORAL de la empresa (header, Próximamente, privacidad y correo de acceso).
+   * Desde el 2026-11-11 es el logo propio del dueño (`imagenes/logo-personal.jpeg`):
+   * fondo exterior transparente, interior del sobre blanco y recortado al dibujo con
+   * 8 px de margen. Conserva el nombre del archivo porque la plantilla del correo de
+   * Supabase lo usa (`{{ .SiteURL }}/images/logo-empresa-temp.png`).
    */
   companyIcon: {
     src: "/images/logo-empresa-temp.png",
     alt: "Logo del proyecto",
-    width: 1200,
-    height: 675,
+    width: 592,
+    height: 632,
   },
   /** Bandera del Ecuador sin escudo (Sección 1). JPEG opaco, sin márgenes. */
   ecuadorFlag: {

@@ -256,7 +256,7 @@ export function VoteScreen({
               width={ownerAssets.companyIcon.width}
               height={ownerAssets.companyIcon.height}
               preload
-              className="h-auto w-[6.5rem] tablet:w-[7rem] tablet:landscape:w-[6rem] wide:w-[5rem] lg:w-[clamp(6rem,6.5vw,8.5rem)]"
+              className="h-[4.75rem] w-auto tablet:h-[5.25rem] tablet:landscape:h-[4.5rem] wide:h-12 lg:h-[clamp(4.25rem,4.75vw,6.25rem)]"
             />
           </Link>
 

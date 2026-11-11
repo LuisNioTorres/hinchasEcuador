@@ -57,7 +57,7 @@ export function AuthShell({
             width={ownerAssets.companyIcon.width}
             height={ownerAssets.companyIcon.height}
             preload
-            className="h-auto w-[6.5rem] tablet:w-[7rem] wide:w-[5.5rem] lg:w-[clamp(8rem,9vw,11rem)]"
+            className="h-[4.75rem] w-auto tablet:h-[5.25rem] wide:h-[4rem] lg:h-[clamp(5.75rem,6.5vw,8rem)]"
           />
         </Link>
 

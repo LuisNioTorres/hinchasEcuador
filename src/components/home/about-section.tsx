@@ -57,12 +57,12 @@ export function AboutSection() {
         {MESSAGES.map((message) => (
           <li
             key={message.id}
-            className={`flex items-center gap-3 phone:flex-1 phone:px-4 phone:py-3 phone:first:rounded-t-3xl tablet:flex-1 tablet:gap-3 tablet:px-5 tablet:py-4 tablet:first:rounded-tl-3xl tablet:last:rounded-bl-3xl lg:gap-[0.05vw] ${message.bandColor}`}
+            className={`flex items-center gap-3 phone:flex-1 phone:px-4 phone:py-3 phone:first:rounded-t-3xl tablet:flex-1 tablet:gap-3 tablet:px-5 tablet:py-4 tablet:first:rounded-tl-3xl tablet:last:rounded-bl-3xl lg:gap-[1.25vw] ${message.bandColor}`}
           >
-            <div className="w-24 shrink-0 phone:w-14 tablet:w-[4.5rem] wide:w-[clamp(4.5rem,9vw,6rem)] lg:w-[9.27vw]">
+            <div className="aspect-[592/632] h-[4.5rem] shrink-0 phone:h-10 tablet:h-[3.25rem] wide:h-[clamp(3.25rem,6.5vw,4.25rem)] lg:h-[6.8vw]">
               <OwnerImage
                 asset={ownerAssets.companyIcon}
-                sizes="(min-width: 64rem) 10vw, 96px"
+                sizes="(min-width: 64rem) 7vw, 72px"
               />
             </div>
             <p className="text-lg leading-[1.46] italic max-lg:min-w-0 max-lg:text-pretty phone:text-[clamp(0.9375rem,4vw,1.125rem)] phone:leading-[1.35] tablet:text-[clamp(1.0625rem,2.2vw,1.375rem)] tablet:leading-[1.35] wide:text-[clamp(0.9375rem,2vw,1.25rem)] lg:-translate-y-[0.26vw] lg:text-[1.32vw]">

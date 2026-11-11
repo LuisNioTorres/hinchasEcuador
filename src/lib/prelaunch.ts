@@ -8,6 +8,11 @@
  */
 
 export const PRELAUNCH_PAGE = "/proximamente";
+/**
+ * Política de privacidad: visible para todos aunque el sitio siga cerrado, porque
+ * Google la revisa antes de publicar el inicio de sesión (paso 9 del plan).
+ */
+export const PRIVACY_PAGE = "/privacidad";
 export const ACCESS_ROUTE = "/acceso";
 export const PRELAUNCH_COOKIE = "censo-prelanzamiento";
 /** El enlace secreto da acceso a ese navegador durante 90 días. */

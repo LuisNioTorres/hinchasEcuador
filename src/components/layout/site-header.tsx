@@ -26,10 +26,10 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 h-(--header-h) border-b border-black/5 pt-[env(safe-area-inset-top)] font-montserrat text-black before:absolute before:inset-0 before:-z-10 before:bg-white/75 before:backdrop-blur-md lg:pt-0">
       <div className="flex h-full items-center justify-between gap-3 px-(--page-x) lg:px-[max(2.5rem,4vw)]">
         <div className="flex min-w-0 items-center gap-3 sm:gap-4 lg:gap-5">
-          <div className="w-[3.25rem] shrink-0 wide:w-12 tablet:w-[3.75rem] lg:w-[clamp(4.5rem,5.2vw,6rem)]">
+          <div className="aspect-[592/632] h-10 shrink-0 wide:h-9 tablet:h-11 lg:h-[clamp(3rem,3.5vw,3.5rem)]">
             <OwnerImage
               asset={ownerAssets.companyIcon}
-              sizes="(min-width: 64rem) 96px, 60px"
+              sizes="(min-width: 64rem) 56px, 44px"
             />
           </div>
           <p className="min-w-0 border-l border-black/10 pl-3 text-[0.6875rem] leading-tight font-semibold tracking-wide text-[#0b1f3f]/75 uppercase sm:pl-4 sm:text-xs lg:pl-5 lg:text-[0.8125rem]">

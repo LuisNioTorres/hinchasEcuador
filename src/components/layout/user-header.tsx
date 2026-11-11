@@ -18,10 +18,10 @@ export function UserHeader({ fullName }: { fullName: string }) {
           aria-label="Ir a la página principal"
           className="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-results-blue sm:gap-4 lg:gap-5"
         >
-          <span className="w-[3.25rem] shrink-0 wide:w-12 tablet:w-[3.75rem] lg:w-[clamp(4.5rem,5.2vw,6rem)]">
+          <span className="aspect-[592/632] h-10 shrink-0 wide:h-9 tablet:h-11 lg:h-[clamp(3rem,3.5vw,3.5rem)]">
             <OwnerImage
               asset={ownerAssets.companyIcon}
-              sizes="(min-width: 64rem) 96px, 60px"
+              sizes="(min-width: 64rem) 56px, 44px"
             />
           </span>
           <span className="min-w-0 border-l border-black/10 pl-3 text-[0.6875rem] leading-tight font-semibold tracking-wide text-[#0b1f3f]/75 uppercase sm:pl-4 sm:text-xs lg:pl-5 lg:text-[0.8125rem]">

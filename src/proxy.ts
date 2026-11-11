@@ -8,6 +8,7 @@ import {
   NO_INDEX_HEADER,
   PRELAUNCH_COOKIE,
   PRELAUNCH_PAGE,
+  PRIVACY_PAGE,
   hasPrelaunchAccess,
   isSitePublic,
 } from "@/lib/prelaunch";
@@ -32,9 +33,9 @@ const isRead = (request: NextRequest) =>
   request.method === "GET" || request.method === "HEAD";
 
 /**
- * Modo pre-lanzamiento (`src/lib/prelaunch.ts`). Sin acceso, cualquier página muestra
- * "Próximamente" (sin cambiar la dirección) y cualquier envío se rechaza, incluido el
- * voto. Devuelve `null` si el navegador puede seguir.
+ * Modo pre-lanzamiento (`src/lib/prelaunch.ts`). Sin acceso, cualquier página salvo la
+ * política de privacidad muestra "Próximamente" (sin cambiar la dirección) y cualquier
+ * envío se rechaza, incluido el voto. Devuelve `null` si el navegador puede seguir.
  */
 async function prelaunchGate(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
@@ -46,7 +47,7 @@ async function prelaunchGate(request: NextRequest) {
   let response: NextResponse;
   if (!isRead(request)) {
     response = new NextResponse(null, { status: 403 });
-  } else if (pathname === PRELAUNCH_PAGE) {
+  } else if (pathname === PRELAUNCH_PAGE || pathname === PRIVACY_PAGE) {
     response = NextResponse.next();
   } else if (pathname === "/_next/image") {
     // Las imágenes optimizadas: solo el logo de "Próximamente".
