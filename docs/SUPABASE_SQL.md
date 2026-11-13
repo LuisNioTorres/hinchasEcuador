@@ -41,12 +41,12 @@ Confirmado en el proyecto real el 2026-11-06: PostgreSQL 17.11, Data API respond
 | 4 | Protección contra bots | El usuario normal solo vota, sin CAPTCHA. La verificación adicional aparece solo si el sistema detecta un robot. El voto entra por el servidor, sin que el usuario lo note, para que nadie pueda saltarse esa protección. |
 | 5 | Clubes | Claude crea la tabla y prepara los registros. La carga viene después, con ayuda del dueño en casos dudosos de nombre, color o escudo. |
 | 6 | Colores | Dos clubes pueden compartir el mismo color. |
-| 7 | Borrado de cuenta | No hay opción para borrar la cuenta y la base de datos rechaza borrar una cuenta que ya votó. Las solicitudes legales se atienden a mano. **Pendiente:** revisar el procedimiento con un abogado antes del lanzamiento. |
+| 7 | Borrado de cuenta | No hay opción para borrar la cuenta y la base de datos rechaza borrar una cuenta que ya votó. Las solicitudes legales se atienden a mano. **Actualizado por la decisión 20 (2026-11-12):** quien ya votó puede pedir salir y se anonimiza. **Pendiente:** revisar el procedimiento con un abogado antes del lanzamiento. |
 | 8 | Migraciones | Se aplican con Supabase CLI. El dueño inicia sesión en su computadora y no comparte ninguna clave. |
 | 9 | Provincias y cantones | Claude los investiga en fuentes oficiales y los carga, con revisión del dueño. |
 | 10 | Privacidad | Nunca se verá públicamente quién votó por quién. Solo se publican resultados totales. |
 | 11 | Pruebas | Las pruebas de seguridad se hacen en Docker Desktop local, sin tocar el proyecto real ni dejar votos de prueba. El dueño pidió crear primero las tablas; Docker se necesita antes de las pruebas de la Fase 4. |
-| 12 | Reglas de la Fase 2 | Aprobadas el 2026-11-06: bloqueo real del voto, perfil bloqueado al votar, `ha_votado` automático, perfil automático, correo verificado para votar, cantón de la provincia elegida, y cuenta con voto imposible de borrar. |
+| 12 | Reglas de la Fase 2 | Aprobadas el 2026-11-06: bloqueo real del voto, perfil bloqueado al votar, `ha_votado` automático, perfil automático, correo verificado para votar, cantón de la provincia elegida, y cuenta con voto imposible de borrar (salvo con la anonimización de la decisión 20). |
 | 13 | Clubes | Cualquier persona puede votar por cualquier club. La provincia del club no tiene ningún efecto en el sistema. |
 | 14 | Perfil (2026-11-09) | Reemplaza lo dicho sobre el bloqueo del perfil en las decisiones 1 y 12: el usuario puede cambiar su nombre y apellido siempre, también después de votar. El voto sigue bloqueado. **Pendiente:** migración que ajuste la política y el trigger de `profiles`, que hoy bloquean el perfil al votar. |
 | 15 | Migración del perfil (2026-11-09) | El dueño la aprobó y delegó el momento: se hará una sola, al conectar la autenticación real, y se probará antes en local. Incluirá: edición del nombre siempre (decisión 14), `nombre_completo` separado en `nombre` y `apellido`, y el número de voto. |
@@ -54,6 +54,7 @@ Confirmado en el proyecto real el 2026-11-06: PostgreSQL 17.11, Data API respond
 | 18 | Total Internacional (2026-11-09) | Es la suma por club de `vista_ranking_continental`, calculada en la aplicación. No hay sexta vista. |
 | 16 | ID DEL HINCHA (2026-11-09) | Es el número de orden del voto en el censo y lo asigna la base de datos al registrar el voto. No se puede editar. El identificador interno de la cuenta (UUID) sigue existiendo, pero no se muestra. |
 | 19 | Correos temporales (2026-11-10) | Se rechazan las cuentas nuevas con dominios de correo temporal, con un hook *Before User Created* de Supabase Auth (plan Free). La lista es una versión fija y revisada de *disposable-email-domains* (CC0), guardada en la migración; no se consulta internet al funcionar. Los dominios `.ec` de la lista que no se pudieron confirmar (`rma.ec`, `tic.ec`) quedan como excepciones. Texto para el usuario: "Ese correo es temporal y no se puede usar para votar. Usa tu correo personal." |
+| 20 | Salida de quien ya votó (2026-11-12) | Si alguien que votó pide salir, se borran su cuenta, su correo y su nombre, y el voto sigue contando en los totales sin dueño (`usuario_id` vacío) y con su mismo número. Solo el dueño lo hace, con `private.anonimizar_votante(correo)` desde el SQL Editor (ver *Salida de quien ya votó*). Opción A del dueño: no se guarda nada de la persona, así que puede registrarse y votar otra vez con el mismo correo; se acepta ese riesgo. |
 
 ## Riesgos abiertos de la auditoría (2026-11-06)
 
@@ -146,6 +147,19 @@ Migración `20261110120000_bloquear_correos_desechables.sql` (decisión 19). Cre
 - [x] Migración aplicada en el proyecto real (2026-11-10, `npx supabase db push --remote`)
 - [x] Hook activado en el panel (Authentication → Hooks → Before User Created → Postgres, esquema `acceso`, función `rechazar_correo_desechable`), 2026-11-10
 - [x] Prueba del dueño en el proyecto real (2026-11-10): un correo temporal nuevo se rechaza con el texto aprobado y su correo entra normal. La cuenta `prueba@mailinator.com`, creada antes de activar el hook, se borró (no había votado; los buzones de mailinator son públicos). Una consulta de solo lectura confirmó que no queda ninguna otra cuenta con dominio temporal.
+
+### Salida de quien ya votó (paso 9 del plan, 2026-11-12)
+Migración `20261112120000_anonimizar_votante.sql` (decisión 20). `votos.usuario_id` acepta vacío y pasa a `on delete set null`. `bloquear_voto` y `proteger_perfil` tienen una sola excepción, que vale solo durante la anonimización de esa misma cuenta y solo hasta el final de la transacción (`censo.anonimizar`): vaciar `usuario_id` sin cambiar nada más del voto y borrar su perfil. La función `private.anonimizar_votante(correo)` borra la cuenta (en cascada: perfil, identidades de correo y Google, sesiones y códigos), los tokens de renovación, los inicios de Google a medio terminar (`flow_state`) y los registros de auditoría con su identificador o su correo. Solo la ejecuta `postgres`; no está en la API pública y no la pueden usar `anon`, `authenticated` ni `service_role`. Borrar a quien votó desde el panel o por SQL directo se sigue rechazando.
+
+- [x] Probada en Docker local: 39 de 39 pruebas (`supabase/tests/anonimizar-votante.mjs`), y sin cambios en las anteriores (`fase4.mjs` 77/77, `resultados.mjs` 38/38, `correos-desechables.mjs` 24/24)
+- [x] Migración aplicada en el proyecto real (2026-11-12, `npx supabase db push --remote`). Comprobado con consultas de solo lectura: llave `on delete set null`, `usuario_id` acepta vacío, la función solo la puede ejecutar `postgres`, las dos excepciones presentes, los 4 triggers de `votos` activos, y los datos sin cambios (4 cuentas, 0 votos)
+- [ ] Revisión con el abogado (paso 10 del plan). Quedan fuera de la base de datos y se borran solos en pocos días: el historial de envíos de Resend y los registros de Supabase y Vercel. El correo de la solicitud queda en el Gmail del dueño hasta que él lo borre.
+
+**Procedimiento del dueño:**
+1. La solicitud debe llegar a `contacto@censounico.com` **desde el mismo correo de la cuenta**. Si llega desde otro, pedir que escriba desde ese correo.
+2. En Supabase → *SQL Editor*, ejecutar `select private.anonimizar_votante('correo@ejemplo.com');`. No hay que cambiar nada más.
+3. La respuesta dice "Cuenta borrada. El voto N.º … sigue contando y ahora es anónimo." o "Cuenta borrada. No había votado.". Si dice "No existe ninguna cuenta con el correo …", revisar cómo está escrito o si ya se atendió antes. Si da cualquier error, no se cambió nada.
+4. Responder a la persona dentro de los 15 días y, si el abogado lo indica, borrar después la conversación del Gmail.
 
 ### Problemas de la prueba del paso 4 (2026-11-09)
 Prueba con la app en `localhost` conectada al proyecto real, correo Hotmail en incógnito y la cuenta de Google abierta en la ventana normal. Sin votar. No se cambió código: falta que el dueño apruebe cada solución.
